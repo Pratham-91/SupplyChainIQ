@@ -83,7 +83,8 @@ export async function getProductTimeSeriesAndForecast(skuCode) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const pyResponse = await fetch(`http://127.0.0.1:8000/api/forecast/sku/${encodeURIComponent(skuCode)}`, {
+    const pythonBase = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
+    const pyResponse = await fetch(`${pythonBase}/api/forecast/sku/${encodeURIComponent(skuCode)}`, {
       signal: controller.signal
     });
     clearTimeout(timeoutId);

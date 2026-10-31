@@ -234,9 +234,10 @@ router.get('/products/:sku/timeseries-and-forecast', async (req, res) => {
  */
 router.get('/forecasting/status', async (req, res) => {
   try {
+    const pythonBase = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const pyRes = await fetch('http://127.0.0.1:8000/health', { signal: controller.signal });
+    const pyRes = await fetch(`${pythonBase}/health`, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (pyRes.ok) {
@@ -244,7 +245,7 @@ router.get('/forecasting/status', async (req, res) => {
       return res.json({
         available: true,
         service: 'Python FastAPI Microservice',
-        port: 8000,
+        url: pythonBase,
         ...data
       });
     }
@@ -260,9 +261,10 @@ router.get('/forecasting/status', async (req, res) => {
  */
 router.get('/forecasting/benchmark', async (req, res) => {
   try {
+    const pythonBase = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const pyRes = await fetch('http://127.0.0.1:8000/api/forecast/tournament/benchmark-all', { signal: controller.signal });
+    const pyRes = await fetch(`${pythonBase}/api/forecast/tournament/benchmark-all`, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (pyRes.ok) {

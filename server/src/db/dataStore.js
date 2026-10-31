@@ -33,7 +33,7 @@ export const memoryStore = {
  * Initialize MongoDB connection
  */
 export async function initDatabase() {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/supplychainiq';
+  const uri = process.env.MONGODB_URI || 'mongodb+srv://prathamg08384_db_user:kIubmRzlUDutKX0U@cluster0.buaho3n.mongodb.net/supplychainiq?retryWrites=true&w=majority';
 
   try {
     console.log(`🔌 [MongoDB] Connecting to: ${uri.replace(/\/\/[^@]+@/, '//***:***@')}`);

@@ -35,7 +35,7 @@ app.add_middleware(
 )
 
 # MongoDB Connection
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/supplychainiq")
+MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI") or "mongodb+srv://prathamg08384_db_user:kIubmRzlUDutKX0U@cluster0.buaho3n.mongodb.net/supplychainiq?retryWrites=true&w=majority"
 mongo_client = None
 db = None
 

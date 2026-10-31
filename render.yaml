@@ -12,4 +12,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://prathamg08384_db_user:kIubmRzlUDutKX0U@cluster0.buaho3n.mongodb.net/supplychainiq?retryWrites=true&w=majority

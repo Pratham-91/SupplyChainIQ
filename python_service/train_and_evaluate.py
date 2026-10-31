@@ -24,7 +24,7 @@ if hasattr(sys.stdout, 'reconfigure'):
         pass
 from forecast_engine import run_tournament
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/supplychainiq")
+MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI") or "mongodb+srv://prathamg08384_db_user:kIubmRzlUDutKX0U@cluster0.buaho3n.mongodb.net/supplychainiq?retryWrites=true&w=majority"
 
 
 def print_banner():

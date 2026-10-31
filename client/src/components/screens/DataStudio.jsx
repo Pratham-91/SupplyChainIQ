@@ -48,6 +48,8 @@ export function DataStudio({ onDataUpdated }) {
   const [isResolving, setIsResolving] = useState(false);
   const [dataQualityScore, setDataQualityScore] = useState(96.8);
   const [batchStats, setBatchStats] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+  const [resolveError, setResolveError] = useState(null);
 
   useEffect(() => {
     loadQuarantineData();
@@ -103,7 +105,7 @@ export function DataStudio({ onDataUpdated }) {
       },
       error: (err) => {
         setIsProcessing(false);
-        alert(`Failed to parse CSV: ${err.message}`);
+        setUploadError(`Failed to parse CSV: ${err.message}`);
       }
     });
   };
@@ -117,7 +119,7 @@ export function DataStudio({ onDataUpdated }) {
       handleFileUpload(file);
     } catch (err) {
       setIsProcessing(false);
-      alert(`Error loading CSV: ${err.message}`);
+      setUploadError(`Error loading CSV: ${err.message}`);
     }
   };
 
@@ -143,7 +145,7 @@ export function DataStudio({ onDataUpdated }) {
       if (onDataUpdated) onDataUpdated();
     } catch (err) {
       setIsProcessing(false);
-      alert(`Validation error: ${err.message}`);
+      setUploadError(`Validation error: ${err.message}`);
     }
   };
 
@@ -168,7 +170,7 @@ export function DataStudio({ onDataUpdated }) {
       await loadQuarantineData();
       if (onDataUpdated) onDataUpdated();
     } catch (err) {
-      alert(`Failed to resolve: ${err.message}`);
+      setResolveError(`Failed to resolve: ${err.message}`);
     } finally {
       setIsResolving(false);
     }
@@ -181,7 +183,7 @@ export function DataStudio({ onDataUpdated }) {
       await loadQuarantineData();
       if (onDataUpdated) onDataUpdated();
     } catch (err) {
-      alert(`Auto-fix error: ${err.message}`);
+      setResolveError(`Auto-fix error: ${err.message}`);
     } finally {
       setIsResolving(false);
     }
@@ -223,9 +225,34 @@ export function DataStudio({ onDataUpdated }) {
           className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-neutral-300 hover:bg-white/[0.08] hover:text-white transition-all active:scale-[0.98]"
         >
           <FileSpreadsheet className="h-3.5 w-3.5 text-neutral-400" />
-          <span>Load Unstandardized Feed</span>
+          <span>Load Demo Feed</span>
         </button>
       </div>
+
+      {/* Inline error banner */}
+      {uploadError && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 text-xs text-[#FF453A]"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{uploadError}</span>
+          <button onClick={() => setUploadError(null)} className="ml-auto text-neutral-400 hover:text-white">✕</button>
+        </motion.div>
+      )}
+
+      {resolveError && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 text-xs text-[#FF453A]"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{resolveError}</span>
+          <button onClick={() => setResolveError(null)} className="ml-auto text-neutral-400 hover:text-white">✕</button>
+        </motion.div>
+      )}
 
       {/* iOS Style Segmented Stepper */}
       <div className="apple-card p-2 flex items-center justify-between">

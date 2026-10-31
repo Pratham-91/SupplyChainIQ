@@ -33,6 +33,14 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [quarantineCount, setQuarantineCount] = useState(5);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     refreshAllData();
@@ -63,8 +71,9 @@ export default function App() {
     try {
       await resetDatabaseSeed();
       await refreshAllData();
+      setToast({ type: 'success', message: 'Database reset and re-seeded successfully.' });
     } catch (err) {
-      alert(`Reset error: ${err.message}`);
+      setToast({ type: 'error', message: `Reset error: ${err.message}` });
     } finally {
       setIsSeeding(false);
     }
@@ -187,6 +196,32 @@ export default function App() {
         initialProduct={poDrawerProduct}
         onPoCreated={() => refreshAllData()}
       />
+
+      {/* Floating Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-full px-4 py-2 text-xs font-medium shadow-2xl backdrop-blur-xl border ${
+              toast.type === 'error'
+                ? 'bg-[#FF453A]/15 text-[#FF453A] border-[#FF453A]/30'
+                : 'bg-[#30D158]/15 text-[#30D158] border-[#30D158]/30'
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${toast.type === 'error' ? 'bg-[#FF453A]' : 'bg-[#30D158]'}`} />
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 text-neutral-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -8,7 +8,8 @@ import {
   TrendingUp,
   ArrowUpDown,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 import { StatusBadge, AbcBadge } from '../common/Badge.jsx';
 import { fetchInventoryWorkbench } from '../../services/api.js';
@@ -20,6 +21,7 @@ export function InventoryWorkbench({
 }) {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [sortField, setSortField] = useState('daysOfInventory');
@@ -32,11 +34,12 @@ export function InventoryWorkbench({
 
   async function loadWorkbenchData() {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const data = await fetchInventoryWorkbench();
       setProducts(data || []);
     } catch (err) {
-      console.error(err);
+      setErrorMessage(err.message || 'Failed to load inventory data');
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +118,26 @@ export function InventoryWorkbench({
           <span>Refresh Run-Rates</span>
         </button>
       </div>
+
+      {/* Error Banner */}
+      {errorMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 text-xs text-[#FF453A]"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-neutral-400 hover:text-white"
+          >
+            ✕
+          </button>
+        </motion.div>
+      )}
 
       {/* Filter Toolbar: iOS Segmented Tabs */}
       <div className="apple-card p-4 space-y-4">
@@ -218,104 +241,135 @@ export function InventoryWorkbench({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {sortedProducts.map((p) => {
-                const status = p.calculatedStatus || p.status;
-                const doi = p.daysOfInventory || 0;
-                const doiProgress = Math.min(100, (doi / 45) * 100);
-
-                return (
-                  <tr key={p.skuCode} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="p-3.5 max-w-[220px]">
-                      <div className="flex flex-col">
-                        <span className="font-mono font-medium text-white group-hover:text-[#2997FF] transition-colors">
-                          {p.skuCode}
-                        </span>
-                        <span className="text-neutral-300 font-normal truncate text-[11px] mt-0.5" title={p.name}>
-                          {p.name}
-                        </span>
-                        <span className="text-neutral-500 text-[10px] truncate">
-                          {p.supplierName} • {p.avgLeadTimeDays}d lead
-                        </span>
-                      </div>
+              {isLoading && products.length === 0 ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <tr key={`skel-${idx}`} className="animate-pulse">
+                    <td className="p-3.5">
+                      <div className="h-4 w-24 rounded bg-white/[0.06] skeleton mb-1" />
+                      <div className="h-3 w-40 rounded bg-white/[0.03] skeleton" />
                     </td>
+                    <td className="p-3.5"><div className="h-4 w-20 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5"><div className="h-4 w-12 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5 text-right"><div className="h-4 w-16 rounded bg-white/[0.06] skeleton ml-auto" /></td>
+                    <td className="p-3.5 text-right"><div className="h-4 w-12 rounded bg-white/[0.06] skeleton ml-auto" /></td>
+                    <td className="p-3.5"><div className="h-3 w-28 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5 text-right"><div className="h-3 w-24 rounded bg-white/[0.06] skeleton ml-auto" /></td>
+                    <td className="p-3.5 text-center"><div className="h-5 w-20 rounded-full bg-white/[0.06] skeleton mx-auto" /></td>
+                    <td className="p-3.5 text-right"><div className="h-7 w-20 rounded-full bg-white/[0.06] skeleton ml-auto" /></td>
+                  </tr>
+                ))
+              ) : (
+                sortedProducts.map((p, index) => {
+                  const status = p.calculatedStatus || p.status;
+                  const doi = p.daysOfInventory || 0;
+                  const doiProgress = Math.min(100, (doi / 45) * 100);
 
-                    <td className="p-3.5 text-neutral-400 text-[11px] whitespace-nowrap">
-                      {p.category}
-                    </td>
-
-                    <td className="p-3.5 whitespace-nowrap">
-                      <AbcBadge category={p.abcCategory} velocity={p.velocityCategory} />
-                    </td>
-
-                    <td className="p-3.5 text-right font-mono font-medium text-white whitespace-nowrap">
-                      {p.currentStock} {p.baseUnit}s
-                    </td>
-
-                    <td className="p-3.5 text-right font-mono text-[#30D158] font-medium whitespace-nowrap">
-                      {p.dailyDemand}/d
-                    </td>
-
-                    <td className="p-3.5 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className={`font-mono font-medium ${
-                            doi < 7 ? 'text-[#FF453A]' : doi <= 14 ? 'text-[#FF9F0A]' : 'text-neutral-300'
-                          }`}>
-                            {doi} Days
+                  return (
+                    <motion.tr
+                      key={p.skuCode}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
+                      className="hover:bg-white/[0.02] transition-colors group"
+                    >
+                      <td className="p-3.5 max-w-[220px]">
+                        <div className="flex flex-col">
+                          <span className="font-mono font-medium text-white group-hover:text-[#2997FF] transition-colors">
+                            {p.skuCode}
+                          </span>
+                          <span className="text-neutral-300 font-normal truncate text-[11px] mt-0.5" title={p.name}>
+                            {p.name}
+                          </span>
+                          <span className="text-neutral-500 text-[10px] truncate">
+                            {p.supplierName} • {p.avgLeadTimeDays}d lead
                           </span>
                         </div>
-                        <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              doi < 7 ? 'bg-[#FF453A]' : doi <= 14 ? 'bg-[#FF9F0A]' : 'bg-[#30D158]'
-                            }`}
-                            style={{ width: `${doiProgress}%` }}
-                          />
+                      </td>
+
+                      <td className="p-3.5 text-neutral-400 text-[11px] whitespace-nowrap">
+                        {p.category}
+                      </td>
+
+                      <td className="p-3.5 whitespace-nowrap">
+                        <AbcBadge category={p.abcCategory} velocity={p.velocityCategory} />
+                      </td>
+
+                      <td className="p-3.5 text-right font-mono font-medium text-white whitespace-nowrap">
+                        {p.currentStock} {p.baseUnit}s
+                      </td>
+
+                      <td className="p-3.5 text-right font-mono text-[#30D158] font-medium whitespace-nowrap">
+                        {p.dailyDemand}/d
+                      </td>
+
+                      <td className="p-3.5 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className={`font-mono font-medium ${
+                              doi < 7 ? 'text-[#FF453A]' : doi <= 14 ? 'text-[#FF9F0A]' : 'text-neutral-300'
+                            }`}>
+                              {doi} Days
+                            </span>
+                          </div>
+                          <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                doi < 7 ? 'bg-[#FF453A]' : doi <= 14 ? 'bg-[#FF9F0A]' : 'bg-[#30D158]'
+                              }`}
+                              style={{ width: `${doiProgress}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="p-3.5 text-right font-mono text-[11px] whitespace-nowrap text-neutral-400">
-                      <span>SS: {p.safetyStock}</span>
-                      <span className="text-neutral-600 mx-1">|</span>
-                      <span>ROP: {p.reorderPoint}</span>
-                    </td>
+                      <td className="p-3.5 text-right font-mono text-[11px] whitespace-nowrap text-neutral-400">
+                        <span>SS: {p.safetyStock}</span>
+                        <span className="text-neutral-600 mx-1">|</span>
+                        <span>ROP: {p.reorderPoint}</span>
+                      </td>
 
-                    <td className="p-3.5 text-center whitespace-nowrap">
-                      <StatusBadge status={status} size="sm" />
-                    </td>
+                      <td className="p-3.5 text-center whitespace-nowrap">
+                        <StatusBadge status={status} size="sm" />
+                      </td>
 
-                    <td className="p-3.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => onSelectSku(p.skuCode)}
-                          className="rounded-full p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors"
-                          title="Forecast"
-                        >
-                          <TrendingUp className="h-3.5 w-3.5" />
-                        </button>
+                      <td className="p-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <motion.button
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => onSelectSku(p.skuCode)}
+                            className="rounded-full p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors"
+                            title="Forecast"
+                          >
+                            <TrendingUp className="h-3.5 w-3.5" />
+                          </motion.button>
 
-                        <button
-                          onClick={() => onOpenWhatIf(p.skuCode)}
-                          className="rounded-full p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors"
-                          title="Simulate"
-                        >
-                          <SlidersHorizontal className="h-3.5 w-3.5" />
-                        </button>
+                          <motion.button
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => onOpenWhatIf(p.skuCode)}
+                            className="rounded-full p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors"
+                            title="Simulate"
+                          >
+                            <SlidersHorizontal className="h-3.5 w-3.5" />
+                          </motion.button>
 
-                        <button
-                          onClick={() => onOpenCreatePo(p)}
-                          className="rounded-full bg-[#0071E3] hover:bg-[#0077ED] px-3 py-1 text-xs font-medium text-white transition-all shadow-apple-sm"
-                        >
-                          Order
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => onOpenCreatePo(p)}
+                            className="rounded-full bg-[#0071E3] hover:bg-[#0077ED] px-3 py-1 text-xs font-medium text-white transition-all shadow-apple-sm"
+                          >
+                            Order
+                          </motion.button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  );
+                })
+              )}
 
-              {sortedProducts.length === 0 && (
+              {!isLoading && sortedProducts.length === 0 && (
                 <tr>
                   <td colSpan="9" className="p-12 text-center text-neutral-500">
                     No catalog items match your search criteria.

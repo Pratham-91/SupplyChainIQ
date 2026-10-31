@@ -256,7 +256,7 @@ export function WhatIfSimulatorDrawer({
 
             {/* Impact Metric Chips */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="apple-card p-3.5">
+              <motion.div whileHover={{ y: -2 }} className="apple-card p-3.5 transition-colors">
                 <span className="text-[11px] text-neutral-400 block">Simulated Depletion</span>
                 <span className="text-base font-semibold text-white mt-0.5 block font-mono">
                   {simStockoutDay ? `Runout in ${simStockoutDay}` : 'Safe (30+ Days)'}
@@ -264,9 +264,9 @@ export function WhatIfSimulatorDrawer({
                 <span className="text-[10px] text-neutral-500 mt-0.5 block">
                   {baseStockoutDay ? `Baseline was ${baseStockoutDay}` : 'Run-rate accelerated'}
                 </span>
-              </div>
+              </motion.div>
 
-              <div className="apple-card p-3.5">
+              <motion.div whileHover={{ y: -2 }} className="apple-card p-3.5 transition-colors">
                 <span className="text-[11px] text-neutral-400 block">Required ROP</span>
                 <span className="text-base font-semibold text-white mt-0.5 block font-mono">
                   {simulatedRop} units
@@ -274,9 +274,9 @@ export function WhatIfSimulatorDrawer({
                 <span className="text-[10px] text-neutral-500 mt-0.5 block">
                   Baseline ROP was {baseRop}
                 </span>
-              </div>
+              </motion.div>
 
-              <div className="apple-card p-3.5">
+              <motion.div whileHover={{ y: -2 }} className="apple-card p-3.5 transition-colors">
                 <span className="text-[11px] text-neutral-400 block">Replenishment Delta</span>
                 <span className="text-base font-semibold text-[#30D158] mt-0.5 block font-mono">
                   +{additionalUnitsNeeded} Units
@@ -284,9 +284,9 @@ export function WhatIfSimulatorDrawer({
                 <span className="text-[10px] text-neutral-500 mt-0.5 block">
                   Coverage requirement
                 </span>
-              </div>
+              </motion.div>
 
-              <div className="apple-card p-3.5">
+              <motion.div whileHover={{ y: -2 }} className="apple-card p-3.5 transition-colors">
                 <span className="text-[11px] text-neutral-400 block">Incremental Capital</span>
                 <span className="text-base font-semibold text-white mt-0.5 block font-mono">
                   ${additionalCapitalNeeded.toLocaleString()}
@@ -294,14 +294,14 @@ export function WhatIfSimulatorDrawer({
                 <span className="text-[10px] text-neutral-500 mt-0.5 block">
                   At buy cost ${product.avgBuyCost}/unit
                 </span>
-              </div>
+              </motion.div>
             </div>
 
             {/* Live Chart */}
             <div className="apple-card p-4">
               <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06] text-xs">
                 <span className="font-semibold text-white">
-                  60 FPS Live Trajectory Comparison
+                  Simulated Stock Depletion
                 </span>
                 <span className="text-neutral-400 font-mono text-[11px]">
                   Simulated Run-Rate: {simulatedDailyDemand}/day
@@ -357,7 +357,9 @@ export function WhatIfSimulatorDrawer({
 
             {/* Action CTA */}
             <div className="pt-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   onClose();
                   onOpenCreatePo({
@@ -365,11 +367,11 @@ export function WhatIfSimulatorDrawer({
                     recommendedOrderQty: additionalUnitsNeeded > 0 ? additionalUnitsNeeded : 150
                   });
                 }}
-                className="w-full flex items-center justify-center gap-2 rounded-full bg-[#0071E3] hover:bg-[#0077ED] py-3 text-xs font-semibold text-white shadow-apple-sm transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-[#0071E3] hover:bg-[#0077ED] py-3 text-xs font-semibold text-white shadow-apple-sm transition-all"
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span>Create Replenishment Authorization ({additionalUnitsNeeded || 150} Units)</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.div>

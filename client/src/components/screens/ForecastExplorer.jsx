@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp,
   Award,
-  Calendar,
   Layers,
   SlidersHorizontal,
   ChevronDown,
@@ -14,18 +13,14 @@ import {
   BarChart3,
   CheckCircle2,
   X,
-  Sparkles,
   Zap,
   Activity,
   Gauge,
   ArrowUpRight,
   ArrowDownRight,
-  Compass,
-  ShieldCheck,
-  Eye,
   GitCompare,
-  Database,
-  HelpCircle
+  BarChart2,
+  HelpCircle,
 } from 'lucide-react';
 import { StatusBadge, AbcBadge } from '../common/Badge.jsx';
 import {
@@ -38,56 +33,99 @@ import {
   Tooltip,
   Legend,
   CartesianGrid,
-  ReferenceLine
+  ReferenceLine,
 } from 'recharts';
 import {
   fetchProductForecast,
   fetchForecastingStatus,
-  fetchForecastingBenchmark
+  fetchForecastingBenchmark,
 } from '../../services/api.js';
 
-export function ForecastExplorer({
-  selectedSku = 'SKU-ELEC-001',
-  onSelectSku,
-  products = [],
-  onOpenWhatIf,
-  onOpenCreatePo
-}) {
+/* ─── Model config ─────────────────────────────────────── */
+const MODEL_TABS = [
+  { id: 'winner',       label: 'Best Fit',        icon: Award,      activeClass: 'bg-gradient-to-r from-[#BF5AF2] to-[#9B3DCB] text-white' },
+  { id: 'sarima',       label: 'SARIMA',           icon: Activity,   activeClass: 'bg-[#30D158] text-black' },
+  { id: 'arima',        label: 'ARIMA(1,1,1)',     icon: Gauge,      activeClass: 'bg-[#FF9F0A] text-black' },
+  { id: 'holt_winters', label: 'Holt-Winters',     icon: TrendingUp, activeClass: 'bg-[#64D2FF] text-black' },
+  { id: 'xgboost',      label: 'XGBoost',          icon: Cpu,        activeClass: 'bg-[#FF375F] text-white' },
+  { id: 'consensus',    label: 'All Models',       icon: GitCompare, activeClass: 'bg-[#5E5CE6] text-white' },
+];
+
+const MODEL_CONFIG = {
+  winner:       { key: 'forecast',              color: '#BF5AF2' },
+  sarima:       { key: 'sarimaForecast',         color: '#30D158' },
+  arima:        { key: 'arimaForecast',          color: '#FF9F0A' },
+  holt_winters: { key: 'holtWintersForecast',    color: '#64D2FF' },
+  xgboost:      { key: 'xgboostForecast',        color: '#FF375F' },
+};
+
+/* ─── Skeleton loader ───────────────────────────────────── */
+function SkeletonCard({ className = '' }) {
+  return <div className={`skeleton rounded-2xl ${className}`} />;
+}
+
+/* ─── Custom chart tooltip ──────────────────────────────── */
+function ForecastTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const filtered = payload.filter((p) => p.value != null && p.value !== undefined);
+  return (
+    <div className="rounded-2xl bg-[#1A1A1C] border border-white/10 p-3 shadow-2xl text-xs min-w-[170px]">
+      <p className="text-neutral-400 mb-2 font-mono">{label}</p>
+      {filtered.map((p) => (
+        <div key={p.dataKey} className="flex items-center justify-between gap-3 py-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.color || p.fill || p.stroke }} />
+            <span className="text-neutral-300">{p.name}</span>
+          </div>
+          <span className="font-mono font-medium text-white">{p.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Diagnostic mini-card ──────────────────────────────── */
+function DiagCard({ label, badge, badgeCls, value, sub }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="apple-card p-4 space-y-1.5"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium text-neutral-400">{label}</span>
+        {badge && (
+          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${badgeCls}`}>{badge}</span>
+        )}
+      </div>
+      <div className="text-[18px] font-semibold text-white tracking-tight font-mono">{value}</div>
+      {sub && <p className="text-[11px] text-neutral-500">{sub}</p>}
+    </motion.div>
+  );
+}
+
+/* ─── Main Component ────────────────────────────────────── */
+export function ForecastExplorer({ selectedSku = 'SKU-ELEC-001', onSelectSku, products = [], onOpenWhatIf, onOpenCreatePo }) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Active Model View Selection
-  // 'winner' | 'sarima' | 'arima' | 'holt_winters' | 'xgboost' | 'random_forest' | 'consensus'
   const [activeModelTab, setActiveModelTab] = useState('winner');
-
-  // Horizon & Confidence Band controls
-  const [forecastHorizon, setForecastHorizon] = useState(30); // 7, 14, 30, 60
-  const [confidenceLevel, setConfidenceLevel] = useState('95'); // '80' | '95' | '99'
-
-  // Python ML microservice status & benchmark modal
+  const [forecastHorizon, setForecastHorizon] = useState(30);
+  const [confidenceLevel, setConfidenceLevel] = useState('95');
   const [pyStatus, setPyStatus] = useState(null);
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [benchmarkData, setBenchmarkData] = useState(null);
   const [isLoadingBenchmark, setIsLoadingBenchmark] = useState(false);
 
-  useEffect(() => {
-    checkEngineStatus();
-  }, []);
-
-  useEffect(() => {
-    if (selectedSku) {
-      loadForecastData(selectedSku);
-    }
-  }, [selectedSku]);
+  useEffect(() => { checkEngineStatus(); }, []);
+  useEffect(() => { if (selectedSku) loadForecastData(selectedSku); }, [selectedSku]);
 
   async function checkEngineStatus() {
     try {
       const res = await fetchForecastingStatus();
       setPyStatus(res);
-    } catch (e) {
-      setPyStatus({ available: false });
-    }
+    } catch { setPyStatus({ available: false }); }
   }
 
   async function loadForecastData(sku) {
@@ -97,29 +135,28 @@ export function ForecastExplorer({
       const res = await fetchProductForecast(sku);
       setData(res);
     } catch (err) {
-      console.error(err);
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function openBenchmarkLeaderboard() {
+  async function openBenchmark(force = false) {
     setShowBenchmarkModal(true);
-    if (!benchmarkData) {
+    if (!benchmarkData || force) {
       setIsLoadingBenchmark(true);
       try {
         const res = await fetchForecastingBenchmark();
         setBenchmarkData(res);
       } catch (err) {
-        console.error('Benchmark fetch failed:', err);
+        console.error('Failed to load benchmark data:', err);
       } finally {
         setIsLoadingBenchmark(false);
       }
     }
   }
 
-  const currentProduct = products.find(p => p.skuCode === selectedSku) || data?.product;
+  const currentProduct = products.find((p) => p.skuCode === selectedSku) || data?.product;
   const tournament = data?.tournament;
   const inventoryPlan = data?.inventoryPlan;
   const combinedChart = data?.combinedForecastChart || [];
@@ -127,65 +164,43 @@ export function ForecastExplorer({
   const diagnostics = tournament?.diagnostics;
   const executiveInsights = tournament?.executiveInsights || [];
   const allModels = tournament?.allModels || [];
-
   const isPythonEngine = tournament?.engine?.includes('Python ML') || pyStatus?.available;
 
-  // Filter combined chart by selected forecast horizon
-  const filteredCombinedChart = combinedChart.filter(point => {
-    if (point.isHistorical) return true;
-    const historyCount = combinedChart.filter(p => p.isHistorical).length;
-    const futureIndex = combinedChart.indexOf(point) - historyCount;
-    return futureIndex < forecastHorizon;
+  // Slice to selected horizon
+  const filteredChart = combinedChart.filter((pt) => {
+    if (pt.isHistorical) return true;
+    const histCount = combinedChart.filter((p) => p.isHistorical).length;
+    return combinedChart.indexOf(pt) - histCount < forecastHorizon;
   });
 
-  // Determine active forecast key and name for the primary forecast line
-  let activeForecastKey = 'forecast';
-  let activeForecastName = tournament ? `${tournament.bestModel} (Optimal Fit)` : 'Forecast';
-  let activeForecastColor = '#BF5AF2';
+  // Active forecast config
+  const activeCfg = MODEL_CONFIG[activeModelTab] || MODEL_CONFIG.winner;
+  const activeForecastKey = activeCfg.key;
+  const activeForecastColor = activeCfg.color;
+  const activeForecastLabel = MODEL_TABS.find((t) => t.id === activeModelTab)?.label || 'Forecast';
 
-  if (activeModelTab === 'sarima') {
-    activeForecastKey = 'sarimaForecast';
-    activeForecastName = 'SARIMA (Seasonal ARIMA)';
-    activeForecastColor = '#30D158';
-  } else if (activeModelTab === 'arima') {
-    activeForecastKey = 'arimaForecast';
-    activeForecastName = 'ARIMA(1,1,1) Standard';
-    activeForecastColor = '#FF9F0A';
-  } else if (activeModelTab === 'holt_winters') {
-    activeForecastKey = 'holtWintersForecast';
-    activeForecastName = 'Holt-Winters (Statsmodels)';
-    activeForecastColor = '#64D2FF';
-  } else if (activeModelTab === 'xgboost') {
-    activeForecastKey = 'xgboostForecast';
-    activeForecastName = 'XGBoost Regressor (ML)';
-    activeForecastColor = '#FF375F';
-  } else if (activeModelTab === 'random_forest') {
-    activeForecastKey = 'randomForestForecast';
-    activeForecastName = 'Random Forest (Ensemble)';
-    activeForecastColor = '#5E5CE6';
-  }
-
-  // Selected Confidence Bounds Keys
-  const lowerBoundKey = confidenceLevel === '80' ? 'lowerBound80' : confidenceLevel === '99' ? 'lowerBound99' : 'lowerBound';
-  const upperBoundKey = confidenceLevel === '80' ? 'upperBound80' : confidenceLevel === '99' ? 'upperBound99' : 'upperBound';
+  const lbKey = confidenceLevel === '80' ? 'lowerBound80' : confidenceLevel === '99' ? 'lowerBound99' : 'lowerBound';
+  const ubKey = confidenceLevel === '80' ? 'upperBound80' : confidenceLevel === '99' ? 'upperBound99' : 'upperBound';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-6"
+      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-5"
     >
-      {/* 1. Header Toolbar Strip */}
-      <div className="apple-card p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-white/[0.06]">
-          <div className="flex flex-wrap items-center gap-3">
+      {/* ── Header toolbar ─────────────────────────────── */}
+      <div className="apple-card p-5 space-y-5">
+        {/* Top row */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* SKU picker */}
             <div className="relative">
               <select
                 value={selectedSku}
                 onChange={(e) => onSelectSku(e.target.value)}
-                className="appearance-none rounded-full border border-white/[0.1] bg-[#0A0A0C] px-4 py-2 pr-10 text-xs font-semibold text-white outline-none focus:border-white/30"
+                className="appearance-none rounded-full border border-white/[0.1] bg-[#0A0A0C] px-4 py-1.5 pr-9 text-[12px] font-semibold text-white outline-none focus:border-white/25 cursor-pointer"
               >
                 {products.map((p) => (
                   <option key={p.skuCode} value={p.skuCode}>
@@ -193,9 +208,10 @@ export function ForecastExplorer({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3.5 top-3 h-3.5 w-3.5 text-neutral-400" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-3.5 w-3.5 text-neutral-400" />
             </div>
 
+            {/* Product badges */}
             {currentProduct && (
               <div className="flex items-center gap-2">
                 <AbcBadge category={currentProduct.abcCategory} velocity={currentProduct.velocityCategory} />
@@ -203,137 +219,123 @@ export function ForecastExplorer({
               </div>
             )}
 
-            {/* Python ML Engine Indicator Badge */}
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium border ${
-                isPythonEngine
-                  ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/20'
-                  : 'bg-white/[0.04] text-neutral-400 border-white/[0.08]'
-              }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${isPythonEngine ? 'bg-[#30D158] animate-pulse' : 'bg-neutral-500'}`} />
-                <span>{isPythonEngine ? 'Python ML Active (FastAPI :8000)' : 'JS Analytical Engine'}</span>
-              </div>
-
-              <button
-                onClick={openBenchmarkLeaderboard}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] transition-all"
-                title="View 30-SKU Tournament Leaderboard"
-              >
-                <BarChart3 className="h-3 w-3 text-[#2997FF]" />
-                <span>30-SKU Leaderboard</span>
-              </button>
+            {/* Engine badge */}
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+              isPythonEngine
+                ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/20'
+                : 'bg-white/[0.04] text-neutral-400 border-white/[0.08]'
+            }`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${isPythonEngine ? 'bg-[#30D158] status-pulse' : 'bg-neutral-500'}`} />
+              <span>{isPythonEngine ? 'Python ML Engine' : 'JS Analytical Engine'}</span>
             </div>
+
+            {/* Benchmark button */}
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              onClick={openBenchmark}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] transition-all"
+            >
+              <BarChart3 className="h-3 w-3 text-[#0071E3]" />
+              <span>30-SKU Results</span>
+            </motion.button>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <button
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={() => onOpenWhatIf(selectedSku)}
-              className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-neutral-300 hover:bg-white/[0.08] hover:text-white transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-[12px] font-medium text-neutral-300 hover:bg-white/[0.07] hover:text-white transition-all"
             >
               <SlidersHorizontal className="h-3.5 w-3.5 text-neutral-400" />
-              <span>Simulate Lead Time & Demand</span>
-            </button>
+              <span>What-If</span>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={() => onOpenCreatePo(currentProduct)}
-              className="flex items-center gap-2 rounded-full bg-[#0071E3] hover:bg-[#0077ED] px-4 py-2 text-xs font-medium text-white shadow-apple-sm transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-full bg-[#0071E3] hover:bg-[#0080F5] px-4 py-1.5 text-[12px] font-medium text-white shadow-sm transition-all"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
-              <span>Authorize Order</span>
-            </button>
+              <span>Create PO</span>
+            </motion.button>
           </div>
         </div>
 
-        {/* 6 Bento Formula Chips */}
+        {/* KPI chips */}
         {inventoryPlan && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Current Inventory</span>
-              <span className="text-xl font-semibold tracking-tight text-white mt-1 block font-mono">
-                {inventoryPlan.currentStock}
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Daily Run-Rate</span>
-              <span className="text-xl font-semibold tracking-tight text-[#30D158] mt-1 block font-mono">
-                {inventoryPlan.forecastedDailyDemand}/d
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Days of Inv (DoI)</span>
-              <span className={`text-xl font-semibold tracking-tight mt-1 block font-mono ${
-                inventoryPlan.daysOfInventory < 7 ? 'text-[#FF453A]' : 'text-white'
-              }`}>
-                {inventoryPlan.daysOfInventory}d
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Safety Buffer</span>
-              <span className="text-xl font-semibold tracking-tight text-neutral-200 mt-1 block font-mono">
-                {inventoryPlan.safetyStock}
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Reorder Point (ROP)</span>
-              <span className="text-xl font-semibold tracking-tight text-[#FF9F0A] mt-1 block font-mono">
-                {inventoryPlan.reorderPoint}
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-              <span className="text-[11px] font-medium text-neutral-500 block">Depletion Runway</span>
-              <span className={`text-xs font-semibold tracking-tight mt-2 block font-mono ${
-                inventoryPlan.projectedStockoutDate.includes('Safe') ? 'text-[#30D158]' : 'text-[#FF453A]'
-              }`}>
-                {inventoryPlan.projectedStockoutDate}
-              </span>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5"
+          >
+            {[
+              { label: 'On Hand',       val: inventoryPlan.currentStock,          cls: 'text-white' },
+              { label: 'Daily Rate',    val: `${inventoryPlan.forecastedDailyDemand}/d`, cls: 'text-[#30D158]' },
+              { label: 'Days Left',     val: `${inventoryPlan.daysOfInventory}d`,  cls: inventoryPlan.daysOfInventory < 7 ? 'text-[#FF453A]' : 'text-white' },
+              { label: 'Safety Stock', val: inventoryPlan.safetyStock,            cls: 'text-neutral-200' },
+              { label: 'Reorder Point', val: inventoryPlan.reorderPoint,          cls: 'text-[#FF9F0A]' },
+              { label: 'Depletion ETA', val: inventoryPlan.projectedStockoutDate, cls: inventoryPlan.projectedStockoutDate?.includes('Safe') ? 'text-[#30D158]' : 'text-[#FF453A]', small: true },
+            ].map(({ label, val, cls, small }) => (
+              <div key={label} className="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04] text-center">
+                <span className="text-[10px] font-medium text-neutral-500 block uppercase tracking-wide">{label}</span>
+                <span className={`${small ? 'text-[11px] font-semibold mt-1.5' : 'text-lg font-semibold mt-0.5'} block font-mono tracking-tight ${cls}`}>
+                  {val}
+                </span>
+              </div>
+            ))}
+          </motion.div>
         )}
       </div>
 
+      {/* ── Loading / Error ──────────────────────────── */}
       {isLoading ? (
-        <div className="apple-card p-16 text-center text-neutral-500 flex items-center justify-center gap-2 text-xs">
-          <RefreshCw className="h-4 w-4 animate-spin text-[#0071E3]" />
-          <span>Synthesizing SARIMA, ARIMA, Holt-Winters & XGBoost models...</span>
+        <div className="space-y-5">
+          <div className="apple-card p-6 space-y-4">
+            <SkeletonCard className="h-8 w-48" />
+            <SkeletonCard className="h-80 w-full" />
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {[0,1,2,3].map((i) => <SkeletonCard key={i} className="h-24" />)}
+          </div>
         </div>
       ) : error ? (
-        <div className="apple-card p-8 text-center text-[#FF453A] border-[#FF453A]/20">
-          {error}
+        <div className="apple-card p-8 text-center border-[#FF453A]/20">
+          <p className="text-[#FF453A] text-sm font-medium">{error}</p>
+          <button
+            onClick={() => loadForecastData(selectedSku)}
+            className="mt-3 text-[12px] text-neutral-400 hover:text-white underline"
+          >
+            Retry
+          </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
 
-          {/* 2. Predictive Analysis Studio: Model Selector & Horizon Controls */}
-          <div className="apple-card p-6 space-y-5">
+          {/* ── Forecast chart panel ─────────────────── */}
+          <div className="apple-card p-5 space-y-4">
+            {/* Panel header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
-                  <Compass className="h-4 w-4 text-[#2997FF]" />
-                  <span>Predictive Analysis Studio & Model Engine Selector</span>
+                <h3 className="text-[13px] font-semibold text-white flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-neutral-400" />
+                  Demand Forecast
                 </h3>
-                <p className="text-[12px] text-neutral-400 mt-0.5">
-                  Toggle individual algorithmic projections or inspect multi-model consensus
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  {tournament?.bestModel ? `Best fit: ${tournament.bestModel} · ${tournament.accuracy}% accuracy` : 'Loading model results…'}
                 </p>
               </div>
 
-              {/* Horizon & Confidence Controls */}
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Horizon Switcher */}
-                <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-full border border-white/[0.08]">
-                  <span className="text-[10px] uppercase font-semibold text-neutral-500 px-2">Horizon:</span>
+              {/* Horizon + Confidence controls */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-full border border-white/[0.07]">
+                  <span className="text-[10px] uppercase font-semibold text-neutral-600 px-1.5">Horizon</span>
                   {[7, 14, 30].map((h) => (
                     <button
                       key={h}
                       onClick={() => setForecastHorizon(h)}
                       className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-                        forecastHorizon === h
-                          ? 'bg-white text-black font-semibold shadow-sm'
-                          : 'text-neutral-400 hover:text-white'
+                        forecastHorizon === h ? 'bg-white text-black font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {h}D
@@ -341,17 +343,14 @@ export function ForecastExplorer({
                   ))}
                 </div>
 
-                {/* Confidence Level Switcher */}
-                <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-full border border-white/[0.08]">
-                  <span className="text-[10px] uppercase font-semibold text-neutral-500 px-2">Confidence:</span>
+                <div className="flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-full border border-white/[0.07]">
+                  <span className="text-[10px] uppercase font-semibold text-neutral-600 px-1.5">CI</span>
                   {['80', '95', '99'].map((cl) => (
                     <button
                       key={cl}
                       onClick={() => setConfidenceLevel(cl)}
                       className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-                        confidenceLevel === cl
-                          ? 'bg-[#0071E3] text-white font-semibold shadow-sm'
-                          : 'text-neutral-400 hover:text-white'
+                        confidenceLevel === cl ? 'bg-[#0071E3] text-white font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {cl}%
@@ -361,213 +360,79 @@ export function ForecastExplorer({
               </div>
             </div>
 
-            {/* Model Segmented Pills */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setActiveModelTab('winner')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'winner'
-                    ? 'bg-gradient-to-r from-[#BF5AF2] to-[#9933CC] text-white shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <Award className="h-3.5 w-3.5" />
-                <span>★ Optimal Fit ({tournament?.bestModel || 'Winner'})</span>
-              </button>
-
-              <button
-                onClick={() => setActiveModelTab('sarima')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'sarima'
-                    ? 'bg-[#30D158] text-black font-semibold shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <Activity className="h-3.5 w-3.5" />
-                <span>SARIMA (Seasonal Statespace)</span>
-              </button>
-
-              <button
-                onClick={() => setActiveModelTab('arima')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'arima'
-                    ? 'bg-[#FF9F0A] text-black font-semibold shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <Gauge className="h-3.5 w-3.5" />
-                <span>ARIMA(1,1,1) Standard</span>
-              </button>
-
-              <button
-                onClick={() => setActiveModelTab('holt_winters')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'holt_winters'
-                    ? 'bg-[#64D2FF] text-black font-semibold shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span>Holt-Winters (Statsmodels)</span>
-              </button>
-
-              <button
-                onClick={() => setActiveModelTab('xgboost')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'xgboost'
-                    ? 'bg-[#FF375F] text-white font-semibold shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <Cpu className="h-3.5 w-3.5" />
-                <span>XGBoost (ML Regressor)</span>
-              </button>
-
-              <button
-                onClick={() => setActiveModelTab('consensus')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeModelTab === 'consensus'
-                    ? 'bg-[#5E5CE6] text-white font-semibold shadow-apple-sm'
-                    : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
-                }`}
-              >
-                <GitCompare className="h-3.5 w-3.5" />
-                <span>☵ Multi-Model Consensus</span>
-              </button>
+            {/* Model selector pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {MODEL_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeModelTab === tab.id;
+                return (
+                  <motion.button
+                    key={tab.id}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setActiveModelTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11.5px] font-medium transition-all ${
+                      isActive
+                        ? tab.activeClass + ' shadow-sm'
+                        : 'bg-white/[0.04] text-neutral-400 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span>{tab.label}</span>
+                  </motion.button>
+                );
+              })}
             </div>
 
-            {/* Top Interactive Canvas: Demand Trajectory with Multi-Model Capabilities */}
-            <div className="h-84 w-full pt-2">
-              <ResponsiveContainer width="100%" height={320}>
-                <ComposedChart
-                  data={filteredCombinedChart}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
+            {/* Chart */}
+            <div className="w-full">
+              <ResponsiveContainer width="100%" height={300}>
+                <ComposedChart data={filteredChart} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    stroke="#515154"
-                    fontSize={11}
+                    stroke="#444"
+                    fontSize={10}
                     tickLine={false}
                     interval={forecastHorizon <= 14 ? 2 : 4}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
                   />
                   <YAxis
-                    stroke="#515154"
-                    fontSize={11}
+                    stroke="#444"
+                    fontSize={10}
                     tickLine={false}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
                   />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#141416',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '14px',
-                      fontSize: '12px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                      color: '#F5F5F7'
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Tooltip content={<ForecastTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }} />
 
-                  {/* Shaded Confidence Cone */}
-                  <Area
-                    type="monotone"
-                    dataKey={upperBoundKey}
-                    name={`Upper Bound (${confidenceLevel}%)`}
-                    stroke="none"
-                    fill={activeForecastColor}
-                    fillOpacity={0.12}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey={lowerBoundKey}
-                    name={`Lower Bound (${confidenceLevel}%)`}
-                    stroke="none"
-                    fill={activeForecastColor}
-                    fillOpacity={0.0}
-                  />
+                  {/* Confidence cone */}
+                  <Area type="monotone" dataKey={ubKey} name={`${confidenceLevel}% Upper`} stroke="none" fill={activeForecastColor} fillOpacity={0.1} />
+                  <Area type="monotone" dataKey={lbKey} name={`${confidenceLevel}% Lower`} stroke="none" fill={activeForecastColor} fillOpacity={0} />
 
-                  {/* Historical Realized Sales */}
-                  <Line
-                    type="monotone"
-                    dataKey="actualSales"
-                    name="Historical Sales"
-                    stroke="#30D158"
-                    strokeWidth={2}
-                    dot={{ r: 1.5, fill: '#30D158' }}
-                    activeDot={{ r: 4 }}
-                  />
+                  {/* Historical */}
+                  <Line type="monotone" dataKey="actualSales"   name="Actual Sales"      stroke="#30D158" strokeWidth={2} dot={{ r: 1.5, fill: '#30D158' }} activeDot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="effectiveSales" name="Imputed (Stockout)" stroke="#FF9F0A" strokeWidth={1.5} strokeDasharray="3 3" dot={false} />
 
-                  {/* Stockout-Corrected Imputed Line */}
-                  <Line
-                    type="monotone"
-                    dataKey="effectiveSales"
-                    name="Stockout-Imputed"
-                    stroke="#FF9F0A"
-                    strokeWidth={1.5}
-                    strokeDasharray="2 2"
-                    dot={false}
-                  />
-
-                  {/* Individual Selected Model Forecast Line OR Consensus View */}
+                  {/* Selected model OR all models */}
                   {activeModelTab !== 'consensus' ? (
                     <Line
                       type="monotone"
                       dataKey={activeForecastKey}
-                      name={activeForecastName}
+                      name={activeForecastLabel}
                       stroke={activeForecastColor}
                       strokeWidth={2.5}
-                      strokeDasharray="4 4"
+                      strokeDasharray="5 4"
                       dot={{ r: 2, fill: activeForecastColor }}
+                      isAnimationActive={true}
                     />
                   ) : (
                     <>
-                      <Line
-                        type="monotone"
-                        dataKey="sarimaForecast"
-                        name="SARIMA"
-                        stroke="#30D158"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="arimaForecast"
-                        name="ARIMA(1,1,1)"
-                        stroke="#FF9F0A"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="holtWintersForecast"
-                        name="Holt-Winters"
-                        stroke="#64D2FF"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="xgboostForecast"
-                        name="XGBoost"
-                        stroke="#FF375F"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="randomForestForecast"
-                        name="Random Forest"
-                        stroke="#5E5CE6"
-                        strokeWidth={2}
-                        strokeDasharray="3 3"
-                        dot={false}
-                      />
+                      <Line type="monotone" dataKey="sarimaForecast"       name="SARIMA"        stroke="#30D158" strokeWidth={1.8} strokeDasharray="3 3" dot={false} />
+                      <Line type="monotone" dataKey="arimaForecast"         name="ARIMA(1,1,1)"  stroke="#FF9F0A" strokeWidth={1.8} strokeDasharray="3 3" dot={false} />
+                      <Line type="monotone" dataKey="holtWintersForecast"   name="Holt-Winters"  stroke="#64D2FF" strokeWidth={1.8} strokeDasharray="3 3" dot={false} />
+                      <Line type="monotone" dataKey="xgboostForecast"       name="XGBoost"       stroke="#FF375F" strokeWidth={1.8} strokeDasharray="3 3" dot={false} />
+                      <Line type="monotone" dataKey="randomForestForecast"  name="Random Forest" stroke="#5E5CE6" strokeWidth={1.8} strokeDasharray="3 3" dot={false} />
                     </>
                   )}
                 </ComposedChart>
@@ -575,177 +440,118 @@ export function ForecastExplorer({
             </div>
           </div>
 
-          {/* 3. Statistical Diagnostics Bento Grid (ADF, Seasonality, Drift, Imputation) */}
+          {/* ── Diagnostics ────────────────────────────── */}
           {diagnostics && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1: Stationarity & ADF */}
-              <div className="apple-card p-5 space-y-2 border border-white/[0.06]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-neutral-400">Stationarity (ADF Test)</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                    diagnostics.isStationary ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#FF9F0A]/10 text-[#FF9F0A]'
-                  }`}>
-                    {diagnostics.isStationary ? 'Stationary (d=0)' : 'Differenced (d=1)'}
-                  </span>
-                </div>
-                <div className="text-xl font-semibold text-white tracking-tight font-mono">
-                  t = {diagnostics.adfStatistic}
-                </div>
-                <p className="text-[11px] text-neutral-500">
-                  p-value: <span className="text-neutral-300 font-mono">{diagnostics.pValStationarity}</span> (Critical: 5%)
-                </p>
-              </div>
-
-              {/* Card 2: 7-Day Weekly Seasonality */}
-              <div className="apple-card p-5 space-y-2 border border-white/[0.06]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-neutral-400">Weekly Rhythm (SARIMA)</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#2997FF]/10 text-[#2997FF]">
-                    Cycle: s=7
-                  </span>
-                </div>
-                <div className="text-xl font-semibold text-white tracking-tight font-mono">
-                  Peak: {diagnostics.peakDemandDay} ({diagnostics.peakDayMultiplier}x)
-                </div>
-                <p className="text-[11px] text-neutral-500">
-                  Seasonality index: <span className="text-neutral-300 font-mono">{diagnostics.seasonalityStrength}%</span> variance
-                </p>
-              </div>
-
-              {/* Card 3: Trend Momentum & Drift */}
-              <div className="apple-card p-5 space-y-2 border border-white/[0.06]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-neutral-400">Trend Momentum</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                    diagnostics.weeklyDriftUnits >= 0 ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#FF453A]/10 text-[#FF453A]'
-                  }`}>
-                    {diagnostics.trendDirection}
-                  </span>
-                </div>
-                <div className="text-xl font-semibold text-white tracking-tight font-mono flex items-center gap-1.5">
-                  {diagnostics.weeklyDriftUnits >= 0 ? (
-                    <ArrowUpRight className="h-5 w-5 text-[#30D158]" />
-                  ) : (
-                    <ArrowDownRight className="h-5 w-5 text-[#FF453A]" />
-                  )}
-                  <span>{diagnostics.weeklyDriftUnits > 0 ? `+${diagnostics.weeklyDriftUnits}` : diagnostics.weeklyDriftUnits} u/wk</span>
-                </div>
-                <p className="text-[11px] text-neutral-500">
-                  Residual σ: <span className="text-neutral-300 font-mono">{diagnostics.noiseStdDev}</span> units
-                </p>
-              </div>
-
-              {/* Card 4: Data Quality & Imputed Gaps */}
-              <div className="apple-card p-5 space-y-2 border border-white/[0.06]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-neutral-400">Demand Imputation</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#BF5AF2]/10 text-[#BF5AF2]">
-                    Cleaned
-                  </span>
-                </div>
-                <div className="text-xl font-semibold text-white tracking-tight font-mono">
-                  {tournament.imputedDaysCount || 0} Stockout Gaps
-                </div>
-                <p className="text-[11px] text-neutral-500">
-                  Rescued Demand: <span className="text-neutral-300 font-mono">+{tournament.rescuedDemandUnits || 0} units</span>
-                </p>
-              </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <DiagCard
+                label="Stationarity (ADF)"
+                badge={diagnostics.isStationary ? 'd=0 Stationary' : 'd=1 Differenced'}
+                badgeCls={diagnostics.isStationary ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#FF9F0A]/10 text-[#FF9F0A]'}
+                value={`t = ${diagnostics.adfStatistic}`}
+                sub={`p = ${diagnostics.pValStationarity} (α 5%)`}
+              />
+              <DiagCard
+                label="Weekly Rhythm"
+                badge="s = 7"
+                badgeCls="bg-[#2997FF]/10 text-[#2997FF]"
+                value={`${diagnostics.peakDemandDay} peak (${diagnostics.peakDayMultiplier}×)`}
+                sub={`Seasonality strength: ${diagnostics.seasonalityStrength}%`}
+              />
+              <DiagCard
+                label="Trend Momentum"
+                badge={diagnostics.trendDirection}
+                badgeCls={diagnostics.weeklyDriftUnits >= 0 ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#FF453A]/10 text-[#FF453A]'}
+                value={`${diagnostics.weeklyDriftUnits > 0 ? '+' : ''}${diagnostics.weeklyDriftUnits} u/wk`}
+                sub={`Residual σ: ${diagnostics.noiseStdDev} units`}
+              />
+              <DiagCard
+                label="Imputation"
+                badge="Cleaned"
+                badgeCls="bg-[#BF5AF2]/10 text-[#BF5AF2]"
+                value={`${tournament.imputedDaysCount || 0} gaps filled`}
+                sub={`+${tournament.rescuedDemandUnits || 0} units rescued`}
+              />
             </div>
           )}
 
-          {/* 4. Model Holdout Tournament Matrix (All 5 Models Compared) */}
-          <div className="apple-card p-6 space-y-4">
+          {/* ── Model tournament table ─────────────────── */}
+          <div className="apple-card p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-[13px] font-semibold text-white flex items-center gap-2">
                   <Award className="h-4 w-4 text-[#BF5AF2]" />
-                  <span>Cross-Validation Tournament Matrix (14-Day Out-of-Sample Holdout)</span>
+                  Model Tournament
                 </h3>
-                <p className="text-[12px] text-neutral-400 mt-0.5">
-                  Models benchmarked simultaneously against realized customer sales on SKU: {selectedSku}
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  14-day holdout cross-validation · SKU: {selectedSku}
                 </p>
               </div>
-
-              <span className="text-[11px] font-mono text-neutral-400">
-                Evaluation Metric: MAPE (Mean Absolute Percentage Error)
-              </span>
+              <span className="text-[11px] font-mono text-neutral-500">Ranked by MAPE</span>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/[0.06] bg-white/[0.02] text-neutral-400 font-medium">
+                  <tr className="border-b border-white/[0.06] bg-white/[0.02] text-neutral-500 font-medium">
                     <th className="p-3">Rank</th>
-                    <th className="p-3">Algorithm Model</th>
-                    <th className="p-3">Model Family</th>
-                    <th className="p-3">Holdout Accuracy</th>
-                    <th className="p-3">MAPE %</th>
+                    <th className="p-3">Model</th>
+                    <th className="p-3">Family</th>
+                    <th className="p-3">Accuracy</th>
+                    <th className="p-3">MAPE</th>
                     <th className="p-3">RMSE</th>
-                    <th className="p-3">AIC / BIC</th>
-                    <th className="p-3">Algorithmic Strengths</th>
+                    <th className="p-3 hidden md:table-cell">AIC / BIC</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
                   {allModels.map((m) => (
-                    <tr
+                    <motion.tr
                       key={m.id || m.name}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       onClick={() => setActiveModelTab(m.id || 'winner')}
                       className={`cursor-pointer transition-colors ${
-                        activeModelTab === m.id
-                          ? 'bg-white/[0.06]'
-                          : 'hover:bg-white/[0.02]'
+                        activeModelTab === m.id ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'
                       }`}
                     >
                       <td className="p-3">
                         {m.isWinner ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20">
-                            ★ Winner
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20">
+                            <CheckCircle2 className="h-3 w-3" /> Winner
                           </span>
                         ) : (
-                          <span className="text-neutral-500 font-mono text-[11px]">#{m.rank}</span>
+                          <span className="text-neutral-600 font-mono">#{m.rank}</span>
                         )}
                       </td>
-                      <td className="p-3 font-semibold text-white flex items-center gap-2">
-                        <span>{m.name}</span>
-                        {activeModelTab === m.id && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#2997FF]" />
-                        )}
+                      <td className="p-3 font-medium text-white">
+                        <div className="flex items-center gap-1.5">
+                          {m.name}
+                          {activeModelTab === m.id && <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]" />}
+                        </div>
                       </td>
-                      <td className="p-3 text-neutral-400 text-[11px]">
-                        {m.family || 'Statistical'}
+                      <td className="p-3 text-neutral-500 text-[11px]">{m.family || 'Statistical'}</td>
+                      <td className="p-3 font-mono text-[#30D158] font-semibold">{m.accuracy}%</td>
+                      <td className="p-3 font-mono text-neutral-300">{m.mape}%</td>
+                      <td className="p-3 font-mono text-neutral-500">{m.rmse || '—'}</td>
+                      <td className="p-3 font-mono text-neutral-600 text-[11px] hidden md:table-cell">
+                        {m.aic ? `${m.aic} / ${m.bic}` : 'N/A'}
                       </td>
-                      <td className="p-3 font-mono text-[#30D158] font-semibold">
-                        {m.accuracy}%
-                      </td>
-                      <td className="p-3 font-mono text-neutral-300">
-                        {m.mape}%
-                      </td>
-                      <td className="p-3 font-mono text-neutral-400">
-                        {m.rmse || '—'}
-                      </td>
-                      <td className="p-3 font-mono text-neutral-400 text-[11px]">
-                        {m.aic ? `${m.aic} / ${m.bic}` : 'N/A (ML)'}
-                      </td>
-                      <td className="p-3 text-neutral-400 text-[11px]">
-                        {m.strengths || m.methodology}
-                      </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* AI Executive Insights Strip */}
+            {/* Key insights */}
             {executiveInsights.length > 0 && (
-              <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4 space-y-2 text-xs">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-[#2997FF]" />
-                  <span>Automated AI Executive Synthesis</span>
+              <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] p-4 space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-[#FF9F0A]" />
+                  Key Insights
                 </span>
-                <ul className="space-y-1 text-neutral-300">
+                <ul className="space-y-1.5 text-[12px] text-neutral-300">
                   {executiveInsights.map((ins, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="text-[#30D158]">•</span>
+                      <span className="text-[#30D158] mt-0.5">·</span>
                       <span>{ins}</span>
                     </li>
                   ))}
@@ -754,110 +560,41 @@ export function ForecastExplorer({
             )}
           </div>
 
-          {/* 5. Bottom Chart: Sawtooth Depletion & PO Intake */}
-          <div className="apple-card p-6">
+          {/* ── Sawtooth depletion chart ───────────────── */}
+          <div className="apple-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-[13px] font-semibold text-white flex items-center gap-2">
                   <Boxes className="h-4 w-4 text-neutral-400" />
-                  <span>Sawtooth Inventory Depletion & Replenishment Threshold</span>
+                  Inventory Depletion Curve
                 </h3>
-                <p className="text-[12px] text-neutral-400 mt-0.5">
-                  Day-by-day simulated stock burn towards critical safety buffer and reorder point
-                </p>
+                <p className="text-[11px] text-neutral-500 mt-0.5">30-day simulated stock burn toward safety buffer</p>
               </div>
-
-              <div className="flex items-center gap-3 text-[11px] text-neutral-400">
-                <span className="flex items-center gap-1.5 text-[#FF453A]">
-                  <span className="h-2 w-2 rounded-full bg-[#FF453A]" /> Safety Buffer
-                </span>
-                <span className="flex items-center gap-1.5 text-[#FF9F0A]">
-                  <span className="h-2 w-2 rounded-full bg-[#FF9F0A]" /> Reorder Point (ROP)
-                </span>
-                <span className="flex items-center gap-1.5 text-[#30D158]">
-                  <span className="h-2 w-2 rounded-full bg-[#30D158]" /> PO Receipt Intake
-                </span>
+              <div className="flex items-center gap-3 text-[11px]">
+                {[
+                  { color: '#FF453A', label: 'Safety Buffer' },
+                  { color: '#FF9F0A', label: 'Reorder Point' },
+                  { color: '#30D158', label: 'PO Receipt' },
+                ].map(({ color, label }) => (
+                  <span key={label} className="flex items-center gap-1" style={{ color }}>
+                    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                    {label}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="h-72 w-full mt-4">
+            <div className="h-64 w-full mt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
-                  data={sawtoothChart}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
+                <ComposedChart data={sawtoothChart} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#515154"
-                    fontSize={11}
-                    tickLine={false}
-                    interval={3}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
-                  />
-                  <YAxis
-                    stroke="#515154"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#141416',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '14px',
-                      fontSize: '12px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                      color: '#F5F5F7'
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-
-                  {/* Safety Stock Line */}
-                  <ReferenceLine
-                    y={inventoryPlan?.safetyStock}
-                    stroke="#FF453A"
-                    strokeDasharray="4 4"
-                    label={{
-                      value: `Safety Buffer (${inventoryPlan?.safetyStock})`,
-                      fill: '#FF453A',
-                      fontSize: 10,
-                      position: 'insideBottomRight'
-                    }}
-                  />
-
-                  {/* Reorder Point Line */}
-                  <ReferenceLine
-                    y={inventoryPlan?.reorderPoint}
-                    stroke="#FF9F0A"
-                    strokeDasharray="4 4"
-                    label={{
-                      value: `ROP (${inventoryPlan?.reorderPoint})`,
-                      fill: '#FF9F0A',
-                      fontSize: 10,
-                      position: 'insideTopRight'
-                    }}
-                  />
-
-                  {/* Depleting stock */}
-                  <Line
-                    type="stepAfter"
-                    dataKey="projectedStock"
-                    name="On-Hand Inventory Level"
-                    stroke="#2997FF"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-
-                  {/* PO Intake Jumps */}
-                  <Line
-                    type="monotone"
-                    dataKey="incomingPO"
-                    name="Purchase Order Intake"
-                    stroke="#30D158"
-                    strokeWidth={0}
-                    dot={{ r: 4, fill: '#30D158' }}
-                  />
+                  <XAxis dataKey="date" stroke="#444" fontSize={10} tickLine={false} interval={3} axisLine={{ stroke: 'rgba(255,255,255,0.06)' }} />
+                  <YAxis stroke="#444" fontSize={10} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.06)' }} />
+                  <Tooltip content={<ForecastTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.07)', strokeWidth: 1 }} />
+                  <ReferenceLine y={inventoryPlan?.safetyStock} stroke="#FF453A" strokeDasharray="4 4" label={{ value: `Safety (${inventoryPlan?.safetyStock})`, fill: '#FF453A', fontSize: 10, position: 'insideBottomRight' }} />
+                  <ReferenceLine y={inventoryPlan?.reorderPoint} stroke="#FF9F0A" strokeDasharray="4 4" label={{ value: `ROP (${inventoryPlan?.reorderPoint})`, fill: '#FF9F0A', fontSize: 10, position: 'insideTopRight' }} />
+                  <Line type="stepAfter" dataKey="projectedStock" name="On-Hand Stock" stroke="#0071E3" strokeWidth={2} dot={false} />
+                  <Line type="monotone"  dataKey="incomingPO"     name="PO Intake"    stroke="#30D158" strokeWidth={0} dot={{ r: 4, fill: '#30D158' }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -865,146 +602,134 @@ export function ForecastExplorer({
         </div>
       )}
 
-      {/* 6. 30-SKU Global Benchmark Leaderboard Modal */}
+      {/* ── Benchmark Modal ─────────────────────────── */}
       <AnimatePresence>
         {showBenchmarkModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="drawer-backdrop absolute inset-0"
+              onClick={() => setShowBenchmarkModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="apple-card w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-white/[0.1] shadow-2xl"
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="apple-card relative w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-white/[0.1] shadow-2xl"
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
+              {/* Modal header */}
+              <div className="flex items-center justify-between p-5 border-b border-white/[0.07]">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-[#0071E3]/10 border border-[#0071E3]/20 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-[#2997FF]" />
+                  <div className="h-9 w-9 rounded-xl bg-[#0071E3]/10 border border-[#0071E3]/20 flex items-center justify-center">
+                    <BarChart2 className="h-4 w-4 text-[#0071E3]" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-white tracking-tight">
-                      Python ML Tournament Benchmark Suite
-                    </h2>
-                    <p className="text-xs text-neutral-400">
-                      Evaluated across all 30 catalog SKUs in MongoDB (SARIMA, ARIMA, Holt-Winters, XGBoost, Random Forest)
-                    </p>
+                    <h2 className="text-[14px] font-semibold text-white">Model Benchmark — All 30 SKUs</h2>
+                    <p className="text-[11px] text-neutral-500">SARIMA, ARIMA, Holt-Winters, XGBoost, Random Forest</p>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => setShowBenchmarkModal(false)}
-                  className="h-8 w-8 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    onClick={() => openBenchmark(true)}
+                    disabled={isLoadingBenchmark}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white border border-white/[0.08] transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${isLoadingBenchmark ? 'animate-spin text-[#0071E3]' : ''}`} />
+                    <span>Re-evaluate</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowBenchmarkModal(false)}
+                    className="h-8 w-8 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
+                  >
+                    <X className="h-4 w-4" />
+                  </motion.button>
+                </div>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto space-y-6">
+              {/* Modal body */}
+              <div className="p-5 overflow-y-auto space-y-5">
                 {isLoadingBenchmark ? (
-                  <div className="py-20 text-center text-neutral-500 flex flex-col items-center justify-center gap-3">
+                  <div className="py-20 flex flex-col items-center gap-3 text-neutral-500">
                     <RefreshCw className="h-6 w-6 animate-spin text-[#0071E3]" />
-                    <span className="text-xs">Evaluating SARIMA, ARIMA, Holt-Winters & XGBoost across 30 SKUs...</span>
+                    <span className="text-xs">Evaluating all SKUs across 5 algorithms…</span>
                   </div>
                 ) : benchmarkData ? (
                   <>
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="rounded-xl bg-white/[0.02] p-4 border border-white/[0.06] text-center">
-                        <span className="text-[11px] font-medium text-neutral-400 block">Total Evaluated SKUs</span>
-                        <span className="text-2xl font-semibold text-white tracking-tight mt-1 block font-mono">
-                          {benchmarkData.totalEvaluatedSKUs || 30}
-                        </span>
-                      </div>
-
-                      <div className="rounded-xl bg-white/[0.02] p-4 border border-white/[0.06] text-center">
-                        <span className="text-[11px] font-medium text-neutral-400 block">Overall Average Accuracy</span>
-                        <span className="text-2xl font-semibold text-[#30D158] tracking-tight mt-1 block font-mono">
-                          {benchmarkData.averageAccuracy || 89.8}%
-                        </span>
-                      </div>
-
-                      <div className="rounded-xl bg-white/[0.02] p-4 border border-white/[0.06] text-center">
-                        <span className="text-[11px] font-medium text-neutral-400 block">FastAPI Server Port</span>
-                        <span className="text-2xl font-semibold text-[#2997FF] tracking-tight mt-1 block font-mono">
-                          :8000
-                        </span>
-                      </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'SKUs Evaluated',   val: benchmarkData.totalEvaluatedSKUs || 30, cls: 'text-white' },
+                        { label: 'Mean Accuracy',    val: `${benchmarkData.averageAccuracy || 89.8}%`, cls: 'text-[#30D158]' },
+                        { label: 'Active ML Engine', val: benchmarkData.engine?.includes('Python') ? 'Python ML' : 'JS Engine', cls: 'text-[#0071E3]' },
+                      ].map(({ label, val, cls }) => (
+                        <div key={label} className="rounded-xl bg-white/[0.02] p-3.5 border border-white/[0.05] text-center">
+                          <span className="text-[11px] font-medium text-neutral-500 block">{label}</span>
+                          <span className={`text-xl font-semibold font-mono mt-1 block ${cls}`}>{val}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Model Win-Rate Progress Bars */}
-                    <div className="rounded-xl bg-white/[0.02] p-4 border border-white/[0.06] space-y-3">
-                      <h4 className="text-xs font-semibold text-white tracking-tight">
-                        Algorithm Tournament Win Rates
-                      </h4>
-                      <div className="space-y-2">
-                        {benchmarkData.winRates?.map((wr) => (
+                    {/* Win rates */}
+                    {benchmarkData.winRates?.length > 0 && (
+                      <div className="rounded-xl bg-white/[0.02] p-4 border border-white/[0.05] space-y-3">
+                        <h4 className="text-[12px] font-semibold text-white">Algorithm Win Rates</h4>
+                        {benchmarkData.winRates.map((wr, i) => (
                           <div key={wr.algorithm} className="space-y-1">
                             <div className="flex items-center justify-between text-[11px]">
                               <span className="text-neutral-300 font-medium">{wr.algorithm}</span>
-                              <span className="font-mono text-neutral-400">
-                                {wr.wins} wins ({wr.winRate})
-                              </span>
+                              <span className="font-mono text-neutral-500">{wr.wins} wins — {wr.winRate}</span>
                             </div>
                             <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-[#0071E3] to-[#2997FF] rounded-full"
-                                style={{ width: wr.winRate }}
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: wr.winRate }}
+                                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                                className="h-full bg-gradient-to-r from-[#0071E3] to-[#64D2FF] rounded-full"
                               />
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    )}
 
-                    {/* SKU Leaderboard Table */}
+                    {/* SKU leaderboard */}
                     <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
                       <table className="w-full text-left text-xs">
                         <thead>
-                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-neutral-400 font-medium">
+                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-neutral-500 font-medium">
                             <th className="p-3">SKU</th>
-                            <th className="p-3">Product Name</th>
-                            <th className="p-3">Category</th>
-                            <th className="p-3">Winning Model</th>
+                            <th className="p-3">Product</th>
+                            <th className="p-3 hidden md:table-cell">Category</th>
+                            <th className="p-3">Best Model</th>
                             <th className="p-3">Accuracy</th>
-                            <th className="p-3">MAPE %</th>
+                            <th className="p-3">MAPE</th>
                             <th className="p-3 text-right">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
                           {benchmarkData.benchmarks?.map((b) => (
                             <tr key={b.skuCode} className="hover:bg-white/[0.02] transition-colors">
-                              <td className="p-3 font-mono font-semibold text-white">
-                                {b.skuCode}
-                              </td>
-                              <td className="p-3 text-neutral-300">
-                                {b.name}
-                              </td>
-                              <td className="p-3 text-neutral-400 text-[11px]">
-                                {b.category}
-                              </td>
-                              <td className="p-3 text-white font-medium">
+                              <td className="p-3 font-mono font-semibold text-white text-[11px]">{b.skuCode}</td>
+                              <td className="p-3 text-neutral-300 max-w-[160px] truncate">{b.name}</td>
+                              <td className="p-3 text-neutral-500 text-[11px] hidden md:table-cell">{b.category}</td>
+                              <td className="p-3 text-white">
                                 <span className="inline-flex items-center gap-1.5">
                                   <span className="h-1.5 w-1.5 rounded-full bg-[#30D158]" />
-                                  {b.bestModel.replace(" (Statsmodels)", "").replace(" (ML)", "").replace(" (Ensemble)", "")}
+                                  {b.bestModel?.replace(' (Statsmodels)', '').replace(' (ML)', '').replace(' (Ensemble)', '')}
                                 </span>
                               </td>
-                              <td className="p-3 font-mono text-[#30D158] font-semibold">
-                                {b.accuracy}%
-                              </td>
-                              <td className="p-3 font-mono text-neutral-300">
-                                {b.mape}%
-                              </td>
+                              <td className="p-3 font-mono text-[#30D158] font-semibold">{b.accuracy}%</td>
+                              <td className="p-3 font-mono text-neutral-300">{b.mape}%</td>
                               <td className="p-3 text-right">
                                 <button
-                                  onClick={() => {
-                                    onSelectSku(b.skuCode);
-                                    setShowBenchmarkModal(false);
-                                  }}
+                                  onClick={() => { onSelectSku(b.skuCode); setShowBenchmarkModal(false); }}
                                   className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white transition-all"
                                 >
-                                  Inspect
+                                  View
                                 </button>
                               </td>
                             </tr>
@@ -1014,8 +739,14 @@ export function ForecastExplorer({
                     </div>
                   </>
                 ) : (
-                  <div className="py-12 text-center text-neutral-400 text-xs">
-                    Could not load benchmark data. Ensure Python service is active on port 8000.
+                  <div className="py-12 flex flex-col items-center gap-3 text-neutral-500 text-xs">
+                    <span>Benchmark data unavailable.</span>
+                    <button
+                      onClick={() => openBenchmark(true)}
+                      className="px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-white text-xs"
+                    >
+                      Retry Evaluation
+                    </button>
                   </div>
                 )}
               </div>

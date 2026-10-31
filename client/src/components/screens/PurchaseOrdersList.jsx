@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingCart,
   Plus,
   Download,
   CheckCircle2,
-  Clock
+  Clock,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { fetchPurchaseOrders, updatePurchaseOrderStatus } from '../../services/api.js';
 
 export function PurchaseOrdersList({ onOpenCreatePo }) {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     loadOrders();
@@ -19,11 +22,12 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
 
   async function loadOrders() {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const data = await fetchPurchaseOrders();
       setOrders(data || []);
     } catch (err) {
-      console.error(err);
+      setErrorMessage(err.message || 'Failed to load purchase orders');
     } finally {
       setIsLoading(false);
     }
@@ -32,10 +36,11 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
   const handleAdvanceStatus = async (poNumber, currentStatus) => {
     const nextStatus = currentStatus === 'DRAFT' ? 'ORDERED' : currentStatus === 'ORDERED' ? 'RECEIVED' : 'RECEIVED';
     try {
+      setErrorMessage(null);
       await updatePurchaseOrderStatus(poNumber, nextStatus);
       await loadOrders();
     } catch (err) {
-      alert(`Error updating PO: ${err.message}`);
+      setErrorMessage(`Error updating PO: ${err.message}`);
     }
   };
 
@@ -107,6 +112,26 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
         </div>
       </div>
 
+      {/* Error Banner */}
+      {errorMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 text-xs text-[#FF453A]"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-neutral-400 hover:text-white"
+          >
+            ✕
+          </button>
+        </motion.div>
+      )}
+
       {/* 3 Metric Chips */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="apple-card p-4">
@@ -148,8 +173,30 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {orders.map((po) => (
-                <tr key={po.poNumber} className="hover:bg-white/[0.02] transition-colors">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <tr key={`skel-${idx}`} className="animate-pulse">
+                    <td className="p-3.5"><div className="h-4 w-24 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5">
+                      <div className="h-4 w-32 rounded bg-white/[0.06] skeleton mb-1" />
+                      <div className="h-3 w-48 rounded bg-white/[0.03] skeleton" />
+                    </td>
+                    <td className="p-3.5"><div className="h-4 w-28 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5 text-right"><div className="h-4 w-12 rounded bg-white/[0.06] skeleton ml-auto" /></td>
+                    <td className="p-3.5 text-right"><div className="h-4 w-16 rounded bg-white/[0.06] skeleton ml-auto" /></td>
+                    <td className="p-3.5"><div className="h-4 w-20 rounded bg-white/[0.06] skeleton" /></td>
+                    <td className="p-3.5 text-center"><div className="h-5 w-20 rounded-full bg-white/[0.06] skeleton mx-auto" /></td>
+                    <td className="p-3.5 text-right"><div className="h-6 w-16 rounded-full bg-white/[0.06] skeleton ml-auto" /></td>
+                  </tr>
+                ))
+              ) : orders.map((po, index) => (
+                <motion.tr
+                  key={po.poNumber}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: index * 0.03 }}
+                  className="hover:bg-white/[0.02] transition-colors"
+                >
                   <td className="p-3.5 font-mono font-medium text-white">
                     {po.poNumber}
                   </td>
@@ -194,20 +241,24 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
 
                   <td className="p-3.5 text-right">
                     {po.status === 'DRAFT' && (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
                         onClick={() => handleAdvanceStatus(po.poNumber, po.status)}
                         className="rounded-full bg-white/[0.08] hover:bg-white/[0.14] px-3 py-1 text-xs font-medium text-white transition-colors"
                       >
                         Dispatch
-                      </button>
+                      </motion.button>
                     )}
                     {po.status === 'ORDERED' && (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
                         onClick={() => handleAdvanceStatus(po.poNumber, po.status)}
                         className="rounded-full bg-[#30D158] hover:bg-[#30D158]/90 px-3 py-1 text-xs font-medium text-black transition-colors"
                       >
                         Receive Stock
-                      </button>
+                      </motion.button>
                     )}
                     {po.status === 'RECEIVED' && (
                       <span className="text-[11px] text-neutral-500 font-mono">
@@ -215,10 +266,10 @@ export function PurchaseOrdersList({ onOpenCreatePo }) {
                       </span>
                     )}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
 
-              {orders.length === 0 && (
+              {!isLoading && orders.length === 0 && (
                 <tr>
                   <td colSpan="8" className="p-12 text-center text-neutral-500">
                     No active purchase orders. Click "New Authorization" above.

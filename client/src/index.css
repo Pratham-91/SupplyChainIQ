@@ -5,8 +5,13 @@
 @layer base {
   :root {
     --bg-primary: #000000;
-    --card-bg: #141416;
-    --border-color: rgba(255, 255, 255, 0.08);
+    --card-bg: #111113;
+    --border-color: rgba(255, 255, 255, 0.07);
+    --accent-blue: #0071E3;
+    --accent-green: #30D158;
+    --accent-orange: #FF9F0A;
+    --accent-red: #FF453A;
+    --accent-purple: #BF5AF2;
   }
 
   body {
@@ -18,81 +23,172 @@
     letter-spacing: -0.012em;
     overflow-x: hidden;
   }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
 }
 
-/* Apple Pro Scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 
-/* Apple Frosted Glass */
-.apple-glass {
-  background: rgba(18, 18, 20, 0.72);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
+/* ─── Cards ─────────────────────────────────────────────── */
 .apple-card {
-  background: #141416;
+  background: #111113;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 20px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 18px;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .apple-card:hover {
-  background: #18181B;
-  border-color: rgba(255, 255, 255, 0.14);
+  background: #161618;
+  border-color: rgba(255, 255, 255, 0.11);
 }
 
-/* Apple Custom Range Slider */
+/* ─── Glass / Frosted ───────────────────────────────────── */
+.apple-glass {
+  background: rgba(14, 14, 16, 0.78);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Range Slider ──────────────────────────────────────── */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   outline: none;
+  cursor: pointer;
 }
-
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.15);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.18);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5), 0 0 0 3px rgba(0,113,227,0.25);
 }
-
 input[type="range"]::-webkit-slider-thumb:active {
-  transform: scale(1.05);
-  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.3);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 5px rgba(0,113,227,0.35);
 }
 
-/* Subtle Shimmer for Skeleton States */
-@keyframes apple-fade {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ─── Skeleton Shimmer ──────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
 }
 
-.apple-animate-fade {
-  animation: apple-fade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* ─── Page Fade ─────────────────────────────────────────── */
+@keyframes page-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: page-fade-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ─── Stagger children helper ───────────────────────────── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+
+/* ─── Status dot pulse ──────────────────────────────────── */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+.status-pulse { animation: status-pulse 2s ease-in-out infinite; }
+
+/* ─── Glow ring ─────────────────────────────────────────── */
+.glow-blue  { box-shadow: 0 0 0 1px rgba(0,113,227,0.3), 0 0 20px rgba(0,113,227,0.1); }
+.glow-green { box-shadow: 0 0 0 1px rgba(48,209,88,0.3), 0 0 20px rgba(48,209,88,0.08); }
+.glow-red   { box-shadow: 0 0 0 1px rgba(255,69,58,0.3),  0 0 20px rgba(255,69,58,0.1); }
+
+/* ─── Number flip ───────────────────────────────────────── */
+@keyframes num-flip {
+  0%   { transform: translateY(6px); opacity: 0; }
+  100% { transform: translateY(0);   opacity: 1; }
+}
+.num-flip { animation: num-flip 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ─── Subtle noise texture on dark cards ────────────────── */
+.card-noise {
+  position: relative;
+  isolation: isolate;
+}
+.card-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ─── Drawer backdrop ───────────────────────────────────── */
+.drawer-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+}
+
+/* ─── Tooltip animation ─────────────────────────────────── */
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.tooltip-animate { animation: tooltip-in 0.15s ease-out both; }
+
+/* ─── Active nav indicator shine ────────────────────────── */
+@keyframes nav-shine {
+  0%   { opacity: 0; transform: translateX(-100%); }
+  50%  { opacity: 0.15; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+.nav-shine::after {
+  content: '';
+  position: absolute;
+  inset-y: 0;
+  left: 0;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: nav-shine 1.8s ease-in-out 0.3s 1 both;
+}
+
+/* ─── Chart tooltip ─────────────────────────────────────── */
+.recharts-tooltip-wrapper { outline: none !important; }
+
+/* ─── Focus ring ─────────────────────────────────────────── */
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(0, 113, 227, 0.6);
+  outline-offset: 2px;
 }

@@ -17,7 +17,7 @@ from pymongo import MongoClient
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from forecast_engine import run_tournament, impute_stockouts
+from forecast_engine import run_tournament, impute_stockouts, evaluate_models_for_benchmark
 
 app = FastAPI(
     title="SupplyChainIQ Python ML Forecasting Microservice",
@@ -217,14 +217,40 @@ def get_sku_forecast(
     return result
 
 
+_cached_benchmark = None
+_cached_benchmark_time = None
+
 @app.get("/api/forecast/tournament/benchmark-all")
-def benchmark_all_skus():
+def benchmark_all_skus(refresh: bool = False):
     """
-    Evaluates all products in MongoDB across Holt-Winters, ARIMA, XGBoost, and Random Forest.
-    Returns tournament leaderboards and algorithm win rates.
+    Evaluates all products in MongoDB across Holt-Winters, ARIMA, XGBoost, Random Forest, and SARIMA.
+    Returns tournament leaderboards and algorithm win rates. Cached for fast response.
     """
+    global _cached_benchmark, _cached_benchmark_time
+
+    # Return in-memory cache if fresh (within 30 mins) and not force-refreshed
+    now = datetime.utcnow()
+    if not refresh and _cached_benchmark is not None and _cached_benchmark_time is not None:
+        if (now - _cached_benchmark_time).total_seconds() < 1800:
+            return _cached_benchmark
+
     if db is None:
+        if _cached_benchmark is not None:
+            return _cached_benchmark
         raise HTTPException(status_code=503, detail="MongoDB not connected")
+
+    # Check MongoDB collection cache if not force-refresh
+    if not refresh:
+        try:
+            stored = db["benchmarks"].find_one({"type": "all_skus_tournament"})
+            if stored and stored.get("benchmarks"):
+                stored.pop("_id", None)
+                stored.pop("type", None)
+                _cached_benchmark = stored
+                _cached_benchmark_time = now
+                return stored
+        except Exception:
+            pass
 
     products = list(db["products"].find({}, {"skuCode": 1, "name": 1, "category": 1}))
     if not products:
@@ -260,7 +286,7 @@ def benchmark_all_skus():
             })
 
         try:
-            res = run_tournament(records, test_window=14, horizon=30)
+            res = evaluate_models_for_benchmark(records, test_window=14)
             winner = res["bestModel"]
             win_counts[winner] = win_counts.get(winner, 0) + 1
 
@@ -290,12 +316,27 @@ def benchmark_all_skus():
 
     avg_accuracy = round(sum(b["accuracy"] for b in benchmarks) / total_evaluated, 1) if total_evaluated > 0 else 0
 
-    return {
+    result = {
         "totalEvaluatedSKUs": total_evaluated,
         "averageAccuracy": avg_accuracy,
         "winRates": win_rates,
         "benchmarks": benchmarks
     }
+
+    _cached_benchmark = result
+    _cached_benchmark_time = now
+
+    # Upsert into MongoDB for cross-process and persistent caching
+    try:
+        db["benchmarks"].update_one(
+            {"type": "all_skus_tournament"},
+            {"$set": {**result, "type": "all_skus_tournament", "updatedAt": now}},
+            upsert=True
+        )
+    except Exception:
+        pass
+
+    return result
 
 
 if __name__ == "__main__":

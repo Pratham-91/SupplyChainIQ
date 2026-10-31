@@ -7,6 +7,7 @@ import express from 'express';
 import { db } from '../db/dataStore.js';
 import { validateAndStandardizeBatch } from '../services/validationService.js';
 import { getProductTimeSeriesAndForecast, getDashboardFinancialSummary } from '../services/timeSeriesService.js';
+import { generateBenchmarkTournamentAllSkus } from '../services/forecastingService.js';
 import { generateMessySampleCSV, seedInitialData } from '../db/seedData.js';
 
 const router = express.Router();
@@ -255,25 +256,55 @@ router.get('/forecasting/status', async (req, res) => {
   }
 });
 
+let cachedBenchmark = null;
+let cachedBenchmarkTime = 0;
+
 /**
  * 7c. GET /api/forecasting/benchmark
  * Returns benchmark tournament results across all SKUs.
+ * Tries Python microservice first; seamlessly falls back to pure JavaScript engine for 100% uptime.
  */
 router.get('/forecasting/benchmark', async (req, res) => {
+  const forceRefresh = req.query.refresh === 'true';
+  const now = Date.now();
+
+  // Return fresh cache (< 30 minutes) if not explicitly refreshing
+  if (!forceRefresh && cachedBenchmark && (now - cachedBenchmarkTime < 1800000)) {
+    return res.json(cachedBenchmark);
+  }
+
+  // 1. Try Python microservice first with a 4-second timeout
   try {
     const pythonBase = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const pyRes = await fetch(`${pythonBase}/api/forecast/tournament/benchmark-all`, { signal: controller.signal });
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const pyUrl = `${pythonBase}/api/forecast/tournament/benchmark-all${forceRefresh ? '?refresh=true' : ''}`;
+    const pyRes = await fetch(pyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (pyRes.ok) {
       const data = await pyRes.json();
+      cachedBenchmark = data;
+      cachedBenchmarkTime = now;
       return res.json(data);
     }
-    return res.status(503).json({ error: 'Python benchmark service returned error.' });
   } catch (err) {
-    return res.status(503).json({ error: 'Python benchmark service unavailable: ' + err.message });
+    // Python service offline, slow, or running on Render single-service Node environment
+    // Gracefully proceed to pure JavaScript engine
+  }
+
+  // 2. High-speed, high-precision JavaScript benchmark engine fallback
+  try {
+    const products = await db.getAllProducts();
+    const transactions = await db.getAllTransactions({});
+    const jsBenchmark = await generateBenchmarkTournamentAllSkus(products, transactions);
+
+    cachedBenchmark = jsBenchmark;
+    cachedBenchmarkTime = now;
+    return res.json(jsBenchmark);
+  } catch (fallbackErr) {
+    console.error('Benchmark generation error:', fallbackErr);
+    return res.status(500).json({ error: 'Failed to generate benchmark tournament: ' + fallbackErr.message });
   }
 });
 

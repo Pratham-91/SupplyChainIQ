@@ -5,7 +5,8 @@ import {
   X,
   Printer,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { createPurchaseOrder } from '../../services/api.js';
 
@@ -23,6 +24,7 @@ export function PurchaseOrderDrawer({
   const [notes, setNotes] = useState('Authorized inventory replenishment via SupplyChainIQ Automated Ledger');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdPo, setCreatedPo] = useState(null);
+  const [poError, setPoError] = useState(null);
 
   React.useEffect(() => {
     if (initialProduct) {
@@ -32,6 +34,7 @@ export function PurchaseOrderDrawer({
       setOrderQty(initialProduct.recommendedOrderQty || 150);
       setUnitCost(initialProduct.avgBuyCost || 45);
       setCreatedPo(null);
+      setPoError(null);
     }
   }, [initialProduct]);
 
@@ -54,9 +57,10 @@ export function PurchaseOrderDrawer({
         notes
       });
       setCreatedPo(res.purchaseOrder);
+      setPoError(null);
       if (onPoCreated) onPoCreated(res.purchaseOrder);
     } catch (err) {
-      alert(`PO creation error: ${err.message}`);
+      setPoError(err.message || 'Failed to create purchase order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -223,6 +227,17 @@ export function PurchaseOrderDrawer({
               </div>
             ) : (
               <form onSubmit={handleSubmitPO} className="space-y-4">
+                {poError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-3.5 py-2.5 text-xs text-[#FF453A]"
+                  >
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{poError}</span>
+                  </motion.div>
+                )}
+
                 <div>
                   <label className="text-[11px] font-medium text-neutral-400 block mb-1">
                     Item SKU Identifier

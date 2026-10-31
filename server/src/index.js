@@ -23,14 +23,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration (Permissive for local development & production)
+const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 app.use(cors({
-  origin: '*',
+  origin: allowedOrigin,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
 }));
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logger for easy debugging
 app.use((req, res, next) => {

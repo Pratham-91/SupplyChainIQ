@@ -181,7 +181,7 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray):
 def fit_sarima(train_series: np.ndarray, horizon: int = 30) -> tuple:
     """
     Fits Seasonal Autoregressive Integrated Moving Average (SARIMA) using statsmodels SARIMAX.
-    Architecture: (p=1, d=1, q=1) x (P=1, D=0, Q=1, s=7)
+    Architecture: (p=1, d=1, q=1) x (P=0, D=1, Q=1, s=7)
     Returns: (forecast_array, aic, bic, diagnostics)
     """
     clean = np.maximum(train_series.astype(float), 0.1)
@@ -193,11 +193,11 @@ def fit_sarima(train_series: np.ndarray, horizon: int = 30) -> tuple:
             model = SARIMAX(
                 clean,
                 order=(1, 1, 1),
-                seasonal_order=(1, 0, 1, 7),
+                seasonal_order=(0, 1, 1, 7),
                 enforce_stationarity=False,
-                enforce_invertibility=False
+                enforce_invertibility=True
             )
-            fit = model.fit(disp=False, maxiter=40)
+            fit = model.fit(disp=False, maxiter=20)
             preds = fit.forecast(steps=horizon)
             aic = round(float(fit.aic), 1)
             bic = round(float(fit.bic), 1)
@@ -353,18 +353,18 @@ def fit_xgboost(train_series: np.ndarray, horizon: int = 30) -> tuple:
     preds = []
     for step in range(horizon):
         curr_idx = len(history)
-        row = {
-            'lag_1': history[-1],
-            'lag_2': history[-2],
-            'lag_3': history[-3],
-            'lag_7': history[-7],
-            'lag_14': history[-14],
-            'rolling_7_mean': float(np.mean(history[-7:])),
-            'rolling_7_std': float(np.std(history[-7:])),
-            'day_of_week': curr_idx % 7,
-            'is_weekend': 1 if (curr_idx % 7) in (5, 6) else 0
-        }
-        pred_val = float(model.predict(pd.DataFrame([row]))[0])
+        feat_vec = np.array([[
+            history[-1],
+            history[-2],
+            history[-3],
+            history[-7],
+            history[-14],
+            float(np.mean(history[-7:])),
+            float(np.std(history[-7:])),
+            curr_idx % 7,
+            1 if (curr_idx % 7) in (5, 6) else 0
+        ]], dtype=float)
+        pred_val = float(model.predict(feat_vec)[0])
         pred_val = max(1.0, round(pred_val))
         preds.append(pred_val)
         history.append(pred_val)
@@ -405,23 +405,79 @@ def fit_random_forest(train_series: np.ndarray, horizon: int = 30) -> tuple:
     preds = []
     for step in range(horizon):
         curr_idx = len(history)
-        row = {
-            'lag_1': history[-1],
-            'lag_2': history[-2],
-            'lag_3': history[-3],
-            'lag_7': history[-7],
-            'lag_14': history[-14],
-            'rolling_7_mean': float(np.mean(history[-7:])),
-            'rolling_7_std': float(np.std(history[-7:])),
-            'day_of_week': curr_idx % 7,
-            'is_weekend': 1 if (curr_idx % 7) in (5, 6) else 0
-        }
-        pred_val = float(model.predict(pd.DataFrame([row]))[0])
+        feat_vec = np.array([[
+            history[-1],
+            history[-2],
+            history[-3],
+            history[-7],
+            history[-14],
+            float(np.mean(history[-7:])),
+            float(np.std(history[-7:])),
+            curr_idx % 7,
+            1 if (curr_idx % 7) in (5, 6) else 0
+        ]], dtype=float)
+        pred_val = float(model.predict(feat_vec)[0])
         pred_val = max(1.0, round(pred_val))
         preds.append(pred_val)
         history.append(pred_val)
 
     return np.array(preds, dtype=float), importances
+
+
+# =========================================================================
+# FAST BENCHMARK EVALUATOR FOR BATCH TOURNAMENTS
+# =========================================================================
+def evaluate_models_for_benchmark(daily_records: list, test_window: int = 14) -> dict:
+    """
+    Fast evaluation of all 5 forecasting models on holdout validation split
+    specifically optimized for batch SKU benchmarks.
+    """
+    df = pd.DataFrame(daily_records)
+    if len(df) == 0:
+        raise ValueError("No time-series records provided")
+
+    if 'sales' not in df.columns and 'quantity' in df.columns:
+        df['sales'] = df['quantity']
+
+    df = impute_stockouts(df)
+    full_series = df['effective_sales'].to_numpy(dtype=float)
+    total_len = len(full_series)
+
+    effective_test_window = min(test_window, max(3, total_len // 5))
+    train_series = full_series[:-effective_test_window]
+    test_actual = full_series[-effective_test_window:]
+
+    # Predict test window with all 5 models
+    test_sarima, aic_s, bic_s = fit_sarima(train_series, horizon=effective_test_window)
+    test_arima, aic_a, bic_a = fit_arima(train_series, horizon=effective_test_window)
+    test_hw, hw_params = fit_holt_winters(train_series, horizon=effective_test_window)
+    test_xgb, xgb_imp = fit_xgboost(train_series, horizon=effective_test_window)
+    test_rf, rf_imp = fit_random_forest(train_series, horizon=effective_test_window)
+
+    metrics_sarima = calculate_metrics(test_actual, test_sarima)
+    metrics_arima = calculate_metrics(test_actual, test_arima)
+    metrics_hw = calculate_metrics(test_actual, test_hw)
+    metrics_xgb = calculate_metrics(test_actual, test_xgb)
+    metrics_rf = calculate_metrics(test_actual, test_rf)
+
+    all_models = [
+        {'id': 'sarima', 'name': 'SARIMA (Seasonal ARIMA)', 'family': 'Statistical Time-Series', **metrics_sarima},
+        {'id': 'arima', 'name': 'ARIMA(1,1,1) (Statsmodels)', 'family': 'Statistical Time-Series', **metrics_arima},
+        {'id': 'holt_winters', 'name': 'Holt-Winters (Statsmodels)', 'family': 'Exponential Smoothing', **metrics_hw},
+        {'id': 'xgboost', 'name': 'XGBoost Regressor (ML)', 'family': 'Supervised Machine Learning', **metrics_xgb},
+        {'id': 'random_forest', 'name': 'Random Forest (Ensemble)', 'family': 'Supervised Machine Learning', **metrics_rf}
+    ]
+    all_models.sort(key=lambda m: (m['mape'], m['rmse']))
+    winner = all_models[0]
+
+    return {
+        'bestModel': winner['name'],
+        'bestModelId': winner['id'],
+        'accuracy': winner['accuracy'],
+        'mape': winner['mape'],
+        'rmse': winner['rmse'],
+        'allModels': all_models
+    }
 
 
 # =========================================================================

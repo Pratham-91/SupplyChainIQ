@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, TrendingUp, Boxes, FileSpreadsheet, LayoutDashboard, ChevronRight } from 'lucide-react';
+import { Search, X, TrendingUp, Boxes, FileSpreadsheet, LayoutDashboard, ChevronRight, ShoppingCart } from 'lucide-react';
 import { StatusBadge, AbcBadge } from '../common/Badge.jsx';
 
 export function CommandPalette({
@@ -34,10 +34,11 @@ export function CommandPalette({
   ).slice(0, 8);
 
   const quickNav = [
-    { id: 'control-tower', label: 'Control Tower', icon: LayoutDashboard },
-    { id: 'data-studio', label: 'Data Hygiene & Quarantine', icon: FileSpreadsheet },
-    { id: 'forecast-explorer', label: 'Demand Trajectory & Confidence Cone', icon: TrendingUp },
-    { id: 'inventory-workbench', label: 'Replenishment Workbench', icon: Boxes },
+    { id: 'control-tower', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'forecast-explorer', label: 'Forecast Explorer', icon: TrendingUp },
+    { id: 'inventory-workbench', label: 'Replenishment', icon: Boxes },
+    { id: 'purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },
+    { id: 'data-studio', label: 'Data Quality', icon: FileSpreadsheet },
   ];
 
   return (

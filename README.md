@@ -97,40 +97,6 @@ Executed across **all 30 enterprise SKUs** and **5,620 historical transactions**
 
 ---
 
-## ☁️ 1-Click Free Cloud Deployment Guide
-
-SupplyChainIQ is pre-configured with **Infrastructure-as-Code (IaC)** files for instant deployment on the world's most popular free hosting platforms:
-
-| Deployment Target | Hosting Architecture | 1-Click Action |
-| :--- | :--- | :--- |
-| **Render (Recommended)** | Full-Stack Node.js + Client SPA (`render.yaml`) | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Pratham-91/SupplyChainIQ) |
-| **Vercel** | Edge Network Frontend CDN (`vercel.json`) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Pratham-91/SupplyChainIQ) |
-| **Docker (Koyeb / Railway)** | Multi-Stage Container (`Dockerfile`) | [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template?template=https://github.com/Pratham-91/SupplyChainIQ) |
-
-### Option A: Free Deployment on Render (60 Seconds)
-1. Sign up for free at [render.com](https://render.com).
-2. Click the **"Deploy to Render"** button above (or go to **New +** > **Blueprint** > connect your GitHub repo `Pratham-91/SupplyChainIQ`).
-3. Render automatically reads [`render.yaml`](render.yaml), installs dependencies, builds the Vite production assets, and starts the Node server.
-4. Your application is live at `https://supplychainiq-xxxx.onrender.com` with free SSL!
-
-*(Optional MongoDB Atlas)*: If you want persistent cloud MongoDB, create a free M0 cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas), and add your connection string as the `MONGODB_URI` environment variable in Render. Even without Atlas, the built-in resilient in-memory fallback runs with zero setup!
-
-### Option B: Free Deployment on Vercel
-1. Sign up for free at [vercel.com](https://vercel.com).
-2. Click **"Deploy with Vercel"** above (or Import Git Repository `Pratham-91/SupplyChainIQ`).
-3. Vercel automatically detects `vite.config.js` and [`vercel.json`](vercel.json).
-4. Click **Deploy**. Your app will be live on `https://supplychainiq-xxxx.vercel.app`!
-
-### Option C: Complete Full-Stack Docker Deployment (Koyeb / Railway / Fly.io)
-The included [`Dockerfile`](Dockerfile) bundles the React Client, Node Express Server, AND the Python FastAPI ML microservice into a single unified container:
-```bash
-# Test container locally
-docker compose up --build
-```
-Deploy to **Koyeb** or **Railway** by connecting your GitHub repository and selecting **Dockerfile**.
-
----
-
 ## 🚀 Quick Start Guide
 
 ### 1. Prerequisites
@@ -168,9 +134,6 @@ npm run client
 ```
 
 ### 5. Access the Application
-* **Frontend Web App:** [http://localhost:5173](http://localhost:5173) (or served via backend at [http://localhost:5000](http://localhost:5000))
-* **FastAPI Microservice Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* **Backend Health Check:** [http://127.0.0.1:5000/health](http://127.0.0.1:5000/health)
 
 ---
 

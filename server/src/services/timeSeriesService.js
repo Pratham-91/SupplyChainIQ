@@ -116,10 +116,9 @@ export async function getProductTimeSeriesAndForecast(skuCode) {
     isPythonEngine = false;
   }
 
-  // Fallback to pure JavaScript tournament if Python wasn't available
+  // Fallback to native high-precision JavaScript engine if Python microservice was offline (e.g. Render Node single-service)
   if (!tournament) {
     tournament = runModelTournament(imputedSeries, 14);
-    tournament.engine = 'Pure JavaScript (Holt-Winters / WMA / Croston)';
   }
 
   // 3. Extract lead times from BUY transactions
@@ -135,6 +134,7 @@ export async function getProductTimeSeriesAndForecast(skuCode) {
     dailySalesHistory,
     leadTimes: buyLeadTimes.length > 0 ? buyLeadTimes : [product.avgLeadTimeDays || 7],
     forecast30: tournament.forecast30,
+    dailyForecastArray: tournament.dailyForecastArray || [],
     incomingPOs
   });
 
@@ -149,8 +149,17 @@ export async function getProductTimeSeriesAndForecast(skuCode) {
       actualSales: item.sales,
       effectiveSales: item.effectiveSales,
       forecast: null,
+      sarimaForecast: null,
+      arimaForecast: null,
+      holtWintersForecast: null,
+      xgboostForecast: null,
+      randomForestForecast: null,
       lowerBound: null,
       upperBound: null,
+      lowerBound80: null,
+      upperBound80: null,
+      lowerBound99: null,
+      upperBound99: null,
       isHistorical: true,
       wasStockoutDay: item.wasStockoutDay,
       stockoutImputed: item.stockoutImputed
@@ -160,24 +169,24 @@ export async function getProductTimeSeriesAndForecast(skuCode) {
   // Future portion (30 days from today)
   for (let i = 0; i < inventoryPlan.sawtoothTimeline.length; i++) {
     const futurePoint = inventoryPlan.sawtoothTimeline[i];
-    const pyDay = (tournament.dailyForecastArray && tournament.dailyForecastArray[i]) || {};
+    const pyDay = (tournament.dailyForecastArray && tournament.dailyForecastArray[i]) || futurePoint;
 
     combinedForecastChart.push({
       date: futurePoint.date,
       actualSales: null,
       effectiveSales: null,
       forecast: futurePoint.predictedDemand,
-      sarimaForecast: pyDay.sarimaForecast || futurePoint.predictedDemand,
-      arimaForecast: pyDay.arimaForecast || futurePoint.predictedDemand,
-      holtWintersForecast: pyDay.holtWintersForecast || futurePoint.predictedDemand,
-      xgboostForecast: pyDay.xgboostForecast || futurePoint.predictedDemand,
-      randomForestForecast: pyDay.randomForestForecast || futurePoint.predictedDemand,
-      lowerBound: pyDay.lowerBound || futurePoint.lowerBound,
-      upperBound: pyDay.upperBound || futurePoint.upperBound,
-      lowerBound80: pyDay.lowerBound80 || Math.round(futurePoint.predictedDemand * 0.9),
-      upperBound80: pyDay.upperBound80 || Math.round(futurePoint.predictedDemand * 1.1),
-      lowerBound99: pyDay.lowerBound99 || Math.max(0, Math.round(futurePoint.predictedDemand * 0.75)),
-      upperBound99: pyDay.upperBound99 || Math.round(futurePoint.predictedDemand * 1.25),
+      sarimaForecast: pyDay.sarimaForecast !== undefined ? pyDay.sarimaForecast : futurePoint.sarimaForecast,
+      arimaForecast: pyDay.arimaForecast !== undefined ? pyDay.arimaForecast : futurePoint.arimaForecast,
+      holtWintersForecast: pyDay.holtWintersForecast !== undefined ? pyDay.holtWintersForecast : futurePoint.holtWintersForecast,
+      xgboostForecast: pyDay.xgboostForecast !== undefined ? pyDay.xgboostForecast : futurePoint.xgboostForecast,
+      randomForestForecast: pyDay.randomForestForecast !== undefined ? pyDay.randomForestForecast : futurePoint.randomForestForecast,
+      lowerBound: pyDay.lowerBound !== undefined ? pyDay.lowerBound : futurePoint.lowerBound,
+      upperBound: pyDay.upperBound !== undefined ? pyDay.upperBound : futurePoint.upperBound,
+      lowerBound80: pyDay.lowerBound80 !== undefined ? pyDay.lowerBound80 : futurePoint.lowerBound80,
+      upperBound80: pyDay.upperBound80 !== undefined ? pyDay.upperBound80 : futurePoint.upperBound80,
+      lowerBound99: pyDay.lowerBound99 !== undefined ? pyDay.lowerBound99 : futurePoint.lowerBound99,
+      upperBound99: pyDay.upperBound99 !== undefined ? pyDay.upperBound99 : futurePoint.upperBound99,
       isHistorical: false,
       wasStockoutDay: false,
       stockoutImputed: false

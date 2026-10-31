@@ -1,0 +1,1425 @@
+{
+  "evaluatedAt": "2026-10-31T11:46:53.539340",
+  "totalSKUs": 30,
+  "averageAccuracy": 89.82,
+  "averageMAPE": 10.18,
+  "elapsedSeconds": 28.32,
+  "winLeaderboard": {
+    "Holt-Winters (Statsmodels)": 4,
+    "ARIMA(1,1,1) (Statsmodels)": 1,
+    "XGBoost Regressor (ML)": 12,
+    "Random Forest (Ensemble)": 13
+  },
+  "skuDetails": [
+    {
+      "skuCode": "SKU-APPR-021",
+      "name": "AirWeave Technical Performance Running Tee",
+      "category": "Apparel & Footwear",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 87.8,
+      "mape": 12.2,
+      "rmse": 2.94,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 12.2,
+          "accuracy": 87.8,
+          "mae": 2.79,
+          "rmse": 2.94,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 12.25,
+          "accuracy": 87.75,
+          "mae": 2.79,
+          "rmse": 3.04,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 15.77,
+          "accuracy": 84.23,
+          "mae": 3.57,
+          "rmse": 4.24,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 18.89,
+          "accuracy": 81.11,
+          "mae": 3.93,
+          "rmse": 4.73,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-022",
+      "name": "ThermalShield Waterproof Trail Jacket",
+      "category": "Apparel & Footwear",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 92.29,
+      "mape": 7.71,
+      "rmse": 1.16,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 7.71,
+          "accuracy": 92.29,
+          "mae": 0.93,
+          "rmse": 1.16,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.97,
+          "accuracy": 91.03,
+          "mae": 1.07,
+          "rmse": 1.39,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 10.92,
+          "accuracy": 89.08,
+          "mae": 1.29,
+          "rmse": 1.51,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.67,
+          "accuracy": 85.33,
+          "mae": 1.86,
+          "rmse": 2.27,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-023",
+      "name": "FlexStride 4-Way Stretch Training Jogger",
+      "category": "Apparel & Footwear",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 87.33,
+      "mape": 12.67,
+      "rmse": 3.23,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 12.67,
+          "accuracy": 87.33,
+          "mae": 2.86,
+          "rmse": 3.23,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 13.02,
+          "accuracy": 86.98,
+          "mae": 2.86,
+          "rmse": 3.4,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.22,
+          "accuracy": 85.78,
+          "mae": 3.29,
+          "rmse": 4.23,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 15.57,
+          "accuracy": 84.43,
+          "mae": 3.29,
+          "rmse": 4.41,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-024",
+      "name": "MerinoLoft Wool Seamless Crewneck Sweater",
+      "category": "Apparel & Footwear",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 86.65,
+      "mape": 13.35,
+      "rmse": 0.85,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 13.35,
+          "accuracy": 86.65,
+          "mae": 0.71,
+          "rmse": 0.85,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 13.35,
+          "accuracy": 86.65,
+          "mae": 0.71,
+          "rmse": 0.85,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 13.66,
+          "accuracy": 86.34,
+          "mae": 0.71,
+          "rmse": 0.85,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 17.81,
+          "accuracy": 82.19,
+          "mae": 0.86,
+          "rmse": 1.2,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-025",
+      "name": "StormGrip All-Weather Hiking Boots",
+      "category": "Apparel & Footwear",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 89.49,
+      "mape": 10.51,
+      "rmse": 1.83,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.51,
+          "accuracy": 89.49,
+          "mae": 1.5,
+          "rmse": 1.83,
+          "isWinner": true
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.74,
+          "accuracy": 89.26,
+          "mae": 1.64,
+          "rmse": 2.49,
+          "isWinner": false
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.88,
+          "accuracy": 88.12,
+          "mae": 1.71,
+          "rmse": 2.04,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 15.72,
+          "accuracy": 84.28,
+          "mae": 2.21,
+          "rmse": 2.6,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-026",
+      "name": "CloudFoam Recovery Slide Sandals",
+      "category": "Apparel & Footwear",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 89.27,
+      "mape": 10.73,
+      "rmse": 3.24,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.73,
+          "accuracy": 89.27,
+          "mae": 2.5,
+          "rmse": 3.24,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.17,
+          "accuracy": 88.83,
+          "mae": 2.71,
+          "rmse": 3.38,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.13,
+          "accuracy": 85.87,
+          "mae": 3.43,
+          "rmse": 4.72,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 26.04,
+          "accuracy": 73.96,
+          "mae": 6.5,
+          "rmse": 7.78,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-027",
+      "name": "DryFit Seamless Athletic Crew Socks 3pk",
+      "category": "Apparel & Footwear",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 89.31,
+      "mape": 10.69,
+      "rmse": 3.26,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.69,
+          "accuracy": 89.31,
+          "mae": 2.64,
+          "rmse": 3.26,
+          "isWinner": true
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.69,
+          "accuracy": 89.31,
+          "mae": 2.57,
+          "rmse": 3.72,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.9,
+          "accuracy": 89.1,
+          "mae": 2.71,
+          "rmse": 3.44,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 12.63,
+          "accuracy": 87.37,
+          "mae": 2.93,
+          "rmse": 3.54,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-028",
+      "name": "AeroLite Packable Down Puffer Vest",
+      "category": "Apparel & Footwear",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 91.07,
+      "mape": 8.93,
+      "rmse": 0.71,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 8.93,
+          "accuracy": 91.07,
+          "mae": 0.5,
+          "rmse": 0.71,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.93,
+          "accuracy": 91.07,
+          "mae": 0.5,
+          "rmse": 0.71,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 9.23,
+          "accuracy": 90.77,
+          "mae": 0.5,
+          "rmse": 0.71,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 10.36,
+          "accuracy": 89.64,
+          "mae": 0.57,
+          "rmse": 0.76,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-029",
+      "name": "HydroShield Roll-Top Waterproof Backpack",
+      "category": "Accessories",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 89.17,
+      "mape": 10.83,
+      "rmse": 1.79,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.83,
+          "accuracy": 89.17,
+          "mae": 1.5,
+          "rmse": 1.79,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 11.32,
+          "accuracy": 88.68,
+          "mae": 1.57,
+          "rmse": 1.85,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 11.93,
+          "accuracy": 88.07,
+          "mae": 1.64,
+          "rmse": 2.15,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 14.04,
+          "accuracy": 85.96,
+          "mae": 1.79,
+          "rmse": 2.12,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-APPR-030",
+      "name": "Polarized Aviator Classic Sunglasses",
+      "category": "Accessories",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 90.48,
+      "mape": 9.52,
+      "rmse": 0.85,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 9.52,
+          "accuracy": 90.48,
+          "mae": 0.57,
+          "rmse": 0.85,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 11.44,
+          "accuracy": 88.56,
+          "mae": 0.71,
+          "rmse": 1.0,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 15.78,
+          "accuracy": 84.22,
+          "mae": 0.93,
+          "rmse": 1.22,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 18.52,
+          "accuracy": 81.48,
+          "mae": 0.93,
+          "rmse": 1.1,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-001",
+      "name": "AeroSound Pro Wireless ANC Headphones",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 91.29,
+      "mape": 8.71,
+      "rmse": 2.43,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 8.71,
+          "accuracy": 91.29,
+          "mae": 2.07,
+          "rmse": 2.43,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.94,
+          "accuracy": 91.06,
+          "mae": 2.14,
+          "rmse": 2.59,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 11.76,
+          "accuracy": 88.24,
+          "mae": 3.14,
+          "rmse": 4.29,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 12.0,
+          "accuracy": 88.0,
+          "mae": 3.07,
+          "rmse": 3.67,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-002",
+      "name": "HyperCharge 100W GaN Travel Adapter",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 90.56,
+      "mape": 9.44,
+      "rmse": 2.76,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.44,
+          "accuracy": 90.56,
+          "mae": 2.21,
+          "rmse": 2.76,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 9.76,
+          "accuracy": 90.24,
+          "mae": 2.29,
+          "rmse": 2.75,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 10.77,
+          "accuracy": 89.23,
+          "mae": 2.71,
+          "rmse": 3.36,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.01,
+          "accuracy": 85.99,
+          "mae": 3.5,
+          "rmse": 4.54,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-003",
+      "name": "OmniHub 9-in-1 USB-C Docking Station",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 90.32,
+      "mape": 9.68,
+      "rmse": 1.6,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.68,
+          "accuracy": 90.32,
+          "mae": 1.29,
+          "rmse": 1.6,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 9.8,
+          "accuracy": 90.2,
+          "mae": 1.29,
+          "rmse": 1.65,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 10.9,
+          "accuracy": 89.1,
+          "mae": 1.5,
+          "rmse": 1.87,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 13.58,
+          "accuracy": 86.42,
+          "mae": 1.86,
+          "rmse": 2.48,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-004",
+      "name": "VibeGlow RGB Mechanical Gaming Keyboard",
+      "category": "Consumer Electronics",
+      "bestModel": "ARIMA(1,1,1) (Statsmodels)",
+      "accuracy": 88.25,
+      "mape": 11.75,
+      "rmse": 1.96,
+      "allModels": [
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 11.75,
+          "accuracy": 88.25,
+          "mae": 1.57,
+          "rmse": 1.96,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.81,
+          "accuracy": 88.19,
+          "mae": 1.57,
+          "rmse": 1.77,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 11.96,
+          "accuracy": 88.04,
+          "mae": 1.57,
+          "rmse": 1.69,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 13.58,
+          "accuracy": 86.42,
+          "mae": 1.71,
+          "rmse": 2.07,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-005",
+      "name": "PrecisionPulse Ergonomic Wireless Mouse",
+      "category": "Consumer Electronics",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 89.81,
+      "mape": 10.19,
+      "rmse": 3.25,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.19,
+          "accuracy": 89.81,
+          "mae": 2.57,
+          "rmse": 3.25,
+          "isWinner": true
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.27,
+          "accuracy": 89.73,
+          "mae": 2.64,
+          "rmse": 3.83,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.36,
+          "accuracy": 89.64,
+          "mae": 2.64,
+          "rmse": 3.37,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 14.93,
+          "accuracy": 85.07,
+          "mae": 3.43,
+          "rmse": 4.07,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-006",
+      "name": "CrystalLens 4K Ultra Webcam with Mic",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 89.52,
+      "mape": 10.48,
+      "rmse": 1.75,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.48,
+          "accuracy": 89.52,
+          "mae": 1.36,
+          "rmse": 1.75,
+          "isWinner": true
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.88,
+          "accuracy": 89.12,
+          "mae": 1.43,
+          "rmse": 1.73,
+          "isWinner": false
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.38,
+          "accuracy": 88.62,
+          "mae": 1.5,
+          "rmse": 1.75,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 21.48,
+          "accuracy": 78.52,
+          "mae": 2.86,
+          "rmse": 3.18,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-007",
+      "name": "VoltSafe Smart Surge Protector Strip",
+      "category": "Consumer Electronics",
+      "bestModel": "Holt-Winters (Statsmodels)",
+      "accuracy": 87.34,
+      "mape": 12.66,
+      "rmse": 2.02,
+      "allModels": [
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 12.66,
+          "accuracy": 87.34,
+          "mae": 1.79,
+          "rmse": 2.02,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 12.71,
+          "accuracy": 87.29,
+          "mae": 1.64,
+          "rmse": 1.91,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 13.68,
+          "accuracy": 86.32,
+          "mae": 1.79,
+          "rmse": 2.22,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 15.42,
+          "accuracy": 84.58,
+          "mae": 2.14,
+          "rmse": 2.85,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-008",
+      "name": "AeroCharge MagSafe Wireless Car Mount",
+      "category": "Consumer Electronics",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 89.67,
+      "mape": 10.33,
+      "rmse": 2.9,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.33,
+          "accuracy": 89.67,
+          "mae": 2.43,
+          "rmse": 2.9,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.68,
+          "accuracy": 89.32,
+          "mae": 2.57,
+          "rmse": 3.16,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 13.78,
+          "accuracy": 86.22,
+          "mae": 3.29,
+          "rmse": 4.17,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 39.83,
+          "accuracy": 60.17,
+          "mae": 8.79,
+          "rmse": 9.55,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-009",
+      "name": "BassPounder Portable Bluetooth Speaker",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 90.01,
+      "mape": 9.99,
+      "rmse": 1.51,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.99,
+          "accuracy": 90.01,
+          "mae": 1.29,
+          "rmse": 1.51,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.37,
+          "accuracy": 89.63,
+          "mae": 1.36,
+          "rmse": 1.63,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 15.3,
+          "accuracy": 84.7,
+          "mae": 1.79,
+          "rmse": 2.31,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 16.73,
+          "accuracy": 83.27,
+          "mae": 2.29,
+          "rmse": 2.75,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-ELEC-010",
+      "name": "StudioMic Cardioid Condenser USB Mic",
+      "category": "Consumer Electronics",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 89.29,
+      "mape": 10.71,
+      "rmse": 0.76,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.71,
+          "accuracy": 89.29,
+          "mae": 0.57,
+          "rmse": 0.76,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.71,
+          "accuracy": 89.29,
+          "mae": 0.57,
+          "rmse": 0.76,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.97,
+          "accuracy": 85.03,
+          "mae": 0.79,
+          "rmse": 1.1,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 20.07,
+          "accuracy": 79.93,
+          "mae": 1.14,
+          "rmse": 1.46,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-011",
+      "name": "ColdBrew Roast Organic Coffee Blend 1kg",
+      "category": "FMCG & Groceries",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 88.1,
+      "mape": 11.9,
+      "rmse": 3.38,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.9,
+          "accuracy": 88.1,
+          "mae": 3.0,
+          "rmse": 3.38,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 12.7,
+          "accuracy": 87.3,
+          "mae": 3.14,
+          "rmse": 3.48,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 13.17,
+          "accuracy": 86.83,
+          "mae": 3.43,
+          "rmse": 4.47,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 14.1,
+          "accuracy": 85.9,
+          "mae": 3.5,
+          "rmse": 4.08,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-012",
+      "name": "PureOat Unsweetened Barista Oat Milk 1L",
+      "category": "FMCG & Groceries",
+      "bestModel": "Holt-Winters (Statsmodels)",
+      "accuracy": 91.94,
+      "mape": 8.06,
+      "rmse": 2.28,
+      "allModels": [
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 8.06,
+          "accuracy": 91.94,
+          "mae": 1.93,
+          "rmse": 2.28,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.89,
+          "accuracy": 91.11,
+          "mae": 2.21,
+          "rmse": 2.46,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.42,
+          "accuracy": 90.58,
+          "mae": 2.36,
+          "rmse": 2.58,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.45,
+          "accuracy": 89.55,
+          "mae": 2.64,
+          "rmse": 3.17,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-013",
+      "name": "GoldenMatcha Ceremonial Grade Green Tea 100g",
+      "category": "FMCG & Groceries",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 89.42,
+      "mape": 10.58,
+      "rmse": 1.83,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.58,
+          "accuracy": 89.42,
+          "mae": 1.5,
+          "rmse": 1.83,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 12.97,
+          "accuracy": 87.03,
+          "mae": 1.86,
+          "rmse": 2.07,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 13.13,
+          "accuracy": 86.87,
+          "mae": 1.93,
+          "rmse": 2.66,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 15.04,
+          "accuracy": 84.96,
+          "mae": 2.14,
+          "rmse": 2.42,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-014",
+      "name": "ElectroHydrate Electrolyte Drink Mix 30pk",
+      "category": "FMCG & Groceries",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 93.23,
+      "mape": 6.77,
+      "rmse": 2.15,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 6.77,
+          "accuracy": 93.23,
+          "mae": 1.64,
+          "rmse": 2.15,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 7.49,
+          "accuracy": 92.51,
+          "mae": 1.86,
+          "rmse": 2.36,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 7.62,
+          "accuracy": 92.38,
+          "mae": 2.0,
+          "rmse": 2.73,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 11.89,
+          "accuracy": 88.11,
+          "mae": 3.0,
+          "rmse": 3.44,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-015",
+      "name": "RawCrunch Artisanal Mixed Nuts & Berries 500g",
+      "category": "FMCG & Groceries",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 91.98,
+      "mape": 8.02,
+      "rmse": 1.49,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.02,
+          "accuracy": 91.98,
+          "mae": 1.07,
+          "rmse": 1.49,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.18,
+          "accuracy": 90.82,
+          "mae": 1.21,
+          "rmse": 1.54,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.4,
+          "accuracy": 85.6,
+          "mae": 1.93,
+          "rmse": 2.46,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 15.27,
+          "accuracy": 84.73,
+          "mae": 2.07,
+          "rmse": 2.49,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-016",
+      "name": "CleanSpark Eco-Friendly Dishwasher Pods 60ct",
+      "category": "FMCG & Household",
+      "bestModel": "XGBoost Regressor (ML)",
+      "accuracy": 89.45,
+      "mape": 10.55,
+      "rmse": 1.6,
+      "allModels": [
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 10.55,
+          "accuracy": 89.45,
+          "mae": 1.43,
+          "rmse": 1.6,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 10.66,
+          "accuracy": 89.34,
+          "mae": 1.43,
+          "rmse": 1.6,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 11.9,
+          "accuracy": 88.1,
+          "mae": 1.64,
+          "rmse": 1.91,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 23.97,
+          "accuracy": 76.03,
+          "mae": 3.29,
+          "rmse": 3.61,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-017",
+      "name": "BambooSoft 3-Ply Recycled Toilet Paper 24pk",
+      "category": "FMCG & Household",
+      "bestModel": "Holt-Winters (Statsmodels)",
+      "accuracy": 88.08,
+      "mape": 11.92,
+      "rmse": 3.32,
+      "allModels": [
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 11.92,
+          "accuracy": 88.08,
+          "mae": 3.0,
+          "rmse": 3.32,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 13.14,
+          "accuracy": 86.86,
+          "mae": 3.29,
+          "rmse": 3.46,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 13.3,
+          "accuracy": 86.7,
+          "mae": 3.36,
+          "rmse": 3.62,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 15.02,
+          "accuracy": 84.98,
+          "mae": 3.86,
+          "rmse": 4.91,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-018",
+      "name": "OliveCrown Extra Virgin Cold Pressed 750ml",
+      "category": "FMCG & Groceries",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 91.4,
+      "mape": 8.6,
+      "rmse": 1.39,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 8.6,
+          "accuracy": 91.4,
+          "mae": 1.07,
+          "rmse": 1.39,
+          "isWinner": true
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.73,
+          "accuracy": 90.27,
+          "mae": 1.21,
+          "rmse": 1.58,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 14.73,
+          "accuracy": 85.27,
+          "mae": 1.93,
+          "rmse": 2.46,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 16.91,
+          "accuracy": 83.09,
+          "mae": 2.0,
+          "rmse": 2.42,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-019",
+      "name": "HydraSilk Sulfate-Free Shampoo 400ml",
+      "category": "Personal Care",
+      "bestModel": "Holt-Winters (Statsmodels)",
+      "accuracy": 93.69,
+      "mape": 6.31,
+      "rmse": 1.25,
+      "allModels": [
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 6.31,
+          "accuracy": 93.69,
+          "mae": 0.86,
+          "rmse": 1.25,
+          "isWinner": true
+        },
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 9.48,
+          "accuracy": 90.52,
+          "mae": 1.21,
+          "rmse": 1.58,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 9.56,
+          "accuracy": 90.44,
+          "mae": 1.21,
+          "rmse": 1.71,
+          "isWinner": false
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 10.26,
+          "accuracy": 89.74,
+          "mae": 1.29,
+          "rmse": 1.96,
+          "isWinner": false
+        }
+      ]
+    },
+    {
+      "skuCode": "SKU-FMCG-020",
+      "name": "MintFresh Fluoride-Free Toothpaste 120ml",
+      "category": "Personal Care",
+      "bestModel": "Random Forest (Ensemble)",
+      "accuracy": 88.51,
+      "mape": 11.49,
+      "rmse": 1.75,
+      "allModels": [
+        {
+          "name": "Random Forest (Ensemble)",
+          "type": "Decision Forest Regressor",
+          "mape": 11.49,
+          "accuracy": 88.51,
+          "mae": 1.5,
+          "rmse": 1.75,
+          "isWinner": true
+        },
+        {
+          "name": "ARIMA(1,1,1) (Statsmodels)",
+          "type": "Autoregressive Integrated",
+          "mape": 12.08,
+          "accuracy": 87.92,
+          "mae": 1.57,
+          "rmse": 1.89,
+          "isWinner": false
+        },
+        {
+          "name": "XGBoost Regressor (ML)",
+          "type": "Gradient Boosted Trees",
+          "mape": 12.58,
+          "accuracy": 87.42,
+          "mae": 1.64,
+          "rmse": 1.98,
+          "isWinner": false
+        },
+        {
+          "name": "Holt-Winters (Statsmodels)",
+          "type": "Exponential Smoothing",
+          "mape": 16.14,
+          "accuracy": 83.86,
+          "mae": 2.21,
+          "rmse": 2.92,
+          "isWinner": false
+        }
+      ]
+    }
+  ]
+}

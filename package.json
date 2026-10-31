@@ -1,0 +1,28 @@
+{
+  "name": "supplychainiq-platform",
+  "version": "1.0.0",
+  "description": "SupplyChainIQ: Intelligent Supply Chain Data Standardization, Validation, Time-Series Buy/Sell Analytics, and Demand Forecasting Web Platform (Pure JavaScript MERN)",
+  "scripts": {
+    "start": "node server/src/index.js",
+    "dev": "node server/src/index.js",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "seed": "cd server && npm run seed",
+    "python:service": "python python_service/forecast_service.py",
+    "python:benchmark": "python python_service/train_and_evaluate.py",
+    "server:install": "cd server && npm install",
+    "client:install": "cd client && npm install",
+    "install:all": "npm run server:install && npm run client:install"
+  },
+  "keywords": [
+    "supplychainiq",
+    "supply-chain",
+    "demand-forecasting",
+    "time-series",
+    "mern",
+    "javascript"
+  ],
+  "author": "Senior Software Engineer",
+  "license": "MIT"
+}

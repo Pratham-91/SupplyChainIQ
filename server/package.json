@@ -1,0 +1,20 @@
+{
+  "name": "supplychainiq-server",
+  "version": "1.0.0",
+  "description": "SupplyChainIQ Backend API & Analytics Engine (Pure JavaScript)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/db/seedData.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5",
+    "papaparse": "^5.4.1",
+    "zod": "^3.24.1"
+  }
+}

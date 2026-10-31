@@ -4,7 +4,7 @@
  * Automatically uses relative /api or falls back directly to http://127.0.0.1:5000/api
  */
 
-const DIRECT_BACKEND = 'http://127.0.0.1:5000';
+const DIRECT_BACKEND = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
 async function fetchWithFallback(endpoint, options = {}) {
   // 1. Try relative path first (seamless for both Vite proxy & Express static serving)

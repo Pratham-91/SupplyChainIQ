@@ -4,8 +4,8 @@
 [![MERN Stack](https://img.shields.io/badge/Stack-MERN%20%2B%20FastAPI-0071E3?style=for-the-badge&logo=react&logoColor=white)](https://github.com/Pratham-91/supplychainiq)
 [![Python ML](https://img.shields.io/badge/Python%20ML-SARIMA%20%7C%20ARIMA%20%7C%20XGBoost%20%7C%20Statsmodels-30D158?style=for-the-badge&logo=python&logoColor=white)](https://github.com/Pratham-91/supplychainiq)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB%20v7.0-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://github.com/Pratham-91/supplychainiq)
-[![Design](https://img.shields.io/badge/Design-Apple%20Obsidian%20Bento-BF5AF2?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Pratham-91/supplychainiq)
-[![Pure JS](https://img.shields.io/badge/Constraint-100%25%20Pure%20JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://github.com/Pratham-91/supplychainiq)
+
+
 
 > **Profile:** B.Tech Capstone & Enterprise-Grade Web Platform  
 > **Frontend:** Pure JavaScript React 18, Vite, Tailwind CSS, Framer Motion, Recharts, TanStack Data Grid, PapaParse  

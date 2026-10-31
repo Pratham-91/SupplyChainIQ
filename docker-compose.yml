@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: supplychainiq_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build: .
+    container_name: supplychainiq_app
+    restart: always
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/supplychainiq
+      - NODE_ENV=production
+      - PORT=5000
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:

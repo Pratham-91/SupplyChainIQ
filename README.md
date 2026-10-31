@@ -134,6 +134,7 @@ npm run client
 ```
 
 ### 5. Access the Application
+supplychainiq-un5h.onrender.com/
 
 ---
 
